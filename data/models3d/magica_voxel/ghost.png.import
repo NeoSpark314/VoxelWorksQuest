@@ -1,0 +1,34 @@
+[remap]
+
+importer="texture"
+type="StreamTexture"
+path="res://.import/ghost.png-92795fad8064b137c44ba9f175a32f77.stex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://data/models3d/magica_voxel/ghost.png"
+dest_files=[ "res://.import/ghost.png-92795fad8064b137c44ba9f175a32f77.stex" ]
+
+[params]
+
+compress/mode=0
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=2
+flags/repeat=true
+flags/filter=false
+flags/mipmaps=false
+flags/anisotropic=false
+flags/srgb=1
+process/fix_alpha_border=false
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+stream=false
+size_limit=0
+detect_3d=false
+svg/scale=1.0

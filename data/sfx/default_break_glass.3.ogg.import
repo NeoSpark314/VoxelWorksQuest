@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/default_break_glass.3.ogg-17c3e830dc4ec101daa98f34782717c0.oggstr"
+
+[deps]
+
+source_file="res://data/sfx/default_break_glass.3.ogg"
+dest_files=[ "res://.import/default_break_glass.3.ogg-17c3e830dc4ec101daa98f34782717c0.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

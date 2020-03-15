@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://data/VoxelMaterial_Transparent.tres" type="Material" id=1]
+[ext_resource path="res://data/VoxelMaterial.tres" type="Material" id=2]
+[ext_resource path="res://levels/DungeonInstance.gd" type="Script" id=3]
+
+[sub_resource type="Environment" id=1]
+background_mode = 1
+background_color = Color( 0.196078, 0.027451, 0.027451, 1 )
+ambient_light_color = Color( 0.705882, 0.705882, 0.705882, 1 )
+
+[node name="DungeonInstance" type="Spatial"]
+script = ExtResource( 3 )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 1 )
+
+[node name="VoxelTerrain" type="VoxelTerrain" parent="."]
+view_distance = 64
+material/0 = ExtResource( 2 )
+material/1 = ExtResource( 1 )
+
+[node name="Container_DestroyVoxel" type="Spatial" parent="."]
+
+[node name="Container_BuildVoxel" type="Spatial" parent="."]
+
+[node name="Container_CraftingGrids" type="Spatial" parent="."]

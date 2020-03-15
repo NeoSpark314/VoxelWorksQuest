@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/default_dig_cracky.ogg-69704fe19ac2ab31714678da06201d38.oggstr"
+
+[deps]
+
+source_file="res://data/sfx/default_dig_cracky.ogg"
+dest_files=[ "res://.import/default_dig_cracky.ogg-69704fe19ac2ab31714678da06201d38.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

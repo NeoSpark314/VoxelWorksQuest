@@ -1,0 +1,230 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=1]
+[ext_resource path="res://dynamic_objects/scripts/Item_CraftingGuide.gd" type="Script" id=2]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DCanvas.tscn" type="PackedScene" id=3]
+
+[node name="Item_CraftingGuide" type="Spatial"]
+script = ExtResource( 2 )
+
+[node name="Geometry" type="Area" parent="."]
+
+[node name="HitPointCollection" type="Spatial" parent="Geometry"]
+
+[node name="OQ_UI2DCanvas" parent="." instance=ExtResource( 3 )]
+transform = Transform( 0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.0121708, 0.246531, 0.00173099 )
+editor_live_update = false
+transparent = true
+
+[node name="ColorRect" type="ColorRect" parent="OQ_UI2DCanvas"]
+margin_right = 512.0
+margin_bottom = 512.0
+theme = ExtResource( 1 )
+color = Color( 0.847059, 0.392157, 0.392157, 0 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 496.0
+margin_bottom = 64.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Crafting Guide v0.1.1"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Result" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 16.0
+margin_top = 80.0
+margin_right = 496.0
+margin_bottom = 128.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Result: "
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Requires" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 16.0
+margin_top = 368.0
+margin_right = 496.0
+margin_bottom = 409.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Requires:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PageMarker" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 288.0
+margin_top = 448.0
+margin_right = 496.0
+margin_bottom = 496.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Page 00/00"
+align = 2
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_1" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_top = 144.0
+margin_right = 160.0
+margin_bottom = 192.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_2" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 176.0
+margin_top = 144.0
+margin_right = 336.0
+margin_bottom = 192.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_3" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 352.0
+margin_top = 144.0
+margin_right = 512.0
+margin_bottom = 192.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_4" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_top = 208.0
+margin_right = 160.0
+margin_bottom = 256.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_5" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 176.0
+margin_top = 208.0
+margin_right = 336.0
+margin_bottom = 256.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_6" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 352.0
+margin_top = 208.0
+margin_right = 512.0
+margin_bottom = 256.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_7" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_top = 272.0
+margin_right = 160.0
+margin_bottom = 320.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_8" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 176.0
+margin_top = 272.0
+margin_right = 336.0
+margin_bottom = 320.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Item_1_9" type="Label" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 352.0
+margin_top = 272.0
+margin_right = 512.0
+margin_bottom = 320.0
+custom_colors/font_color = Color( 0.239216, 0.105882, 0, 1 )
+text = "Item"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ColorRect" type="ColorRect" parent="OQ_UI2DCanvas/ColorRect"]
+margin_top = 192.0
+margin_right = 512.0
+margin_bottom = 200.0
+color = Color( 0.239216, 0.105882, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ColorRect2" type="ColorRect" parent="OQ_UI2DCanvas/ColorRect"]
+margin_top = 256.0
+margin_right = 512.0
+margin_bottom = 264.0
+color = Color( 0.239216, 0.105882, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ColorRect3" type="ColorRect" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 160.0
+margin_top = 144.0
+margin_right = 168.0
+margin_bottom = 336.0
+color = Color( 0.239216, 0.105882, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ColorRect4" type="ColorRect" parent="OQ_UI2DCanvas/ColorRect"]
+margin_left = 352.0
+margin_top = 144.0
+margin_right = 360.0
+margin_bottom = 336.0
+color = Color( 0.239216, 0.105882, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="area_entered" from="Geometry" to="." method="_on_Geometry_area_entered"]
+[connection signal="area_exited" from="Geometry" to="." method="_on_Geometry_area_exited"]

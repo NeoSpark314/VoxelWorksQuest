@@ -1,0 +1,297 @@
+[gd_scene load_steps=13 format=2]
+
+[ext_resource path="res://levels/MainMenuRoom.gd" type="Script" id=1]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=2]
+[ext_resource path="res://OQ_Toolkit/OQ_LeftController.tscn" type="PackedScene" id=3]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRCamera.tscn" type="PackedScene" id=4]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin.tscn" type="PackedScene" id=5]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRController/Feature_UIRayCast.tscn" type="PackedScene" id=6]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DLabel.tscn" type="PackedScene" id=7]
+[ext_resource path="res://OQ_Toolkit/OQ_RightController.tscn" type="PackedScene" id=8]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DCanvas.tscn" type="PackedScene" id=9]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin/Feature_VRSimulator.tscn" type="PackedScene" id=10]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/controls/VirtualKeyboard.tscn" type="PackedScene" id=11]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 1 )
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color( 0.0156863, 0.905882, 0.384314, 1 )
+
+[node name="MainMenuRoom" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="OQ_ARVROrigin" parent="." instance=ExtResource( 5 )]
+
+[node name="OQ_LeftController" parent="OQ_ARVROrigin" instance=ExtResource( 3 )]
+
+[node name="OQ_ARVRCamera" parent="OQ_ARVROrigin" instance=ExtResource( 4 )]
+
+[node name="OQ_RightController" parent="OQ_ARVROrigin" instance=ExtResource( 8 )]
+
+[node name="Feature_UIRayCast" parent="OQ_ARVROrigin/OQ_RightController" instance=ExtResource( 6 )]
+ui_raycast_visible_button = -1
+
+[node name="Feature_VRSimulator" parent="OQ_ARVROrigin" instance=ExtResource( 10 )]
+
+[node name="ChangeLogLabel" parent="." instance=ExtResource( 7 )]
+transform = Transform( -2, 0, -3.01992e-07, 0, 2, 0, 3.01992e-07, 0, -2, 0, 1.6, 1 )
+text = "Look behind you!"
+margin = 32
+billboard = false
+depth_test = true
+resize_mode = 0
+font_size_multiplier = 1.0
+font_color = Color( 1, 1, 1, 1 )
+background_color = Color( 0, 0, 0, 1 )
+transparent = false
+
+[node name="StatisticsTextLabel" parent="." instance=ExtResource( 7 )]
+transform = Transform( -8.74228e-08, 0, 2, 0, 2, 0, -2, 0, -8.74228e-08, -1, 1.6, 0 )
+margin = 32
+billboard = false
+depth_test = true
+resize_mode = 0
+font_size_multiplier = 1.0
+font_color = Color( 1, 1, 1, 1 )
+background_color = Color( 0, 0, 0, 1 )
+transparent = false
+
+[node name="InfoTextLabel" parent="." instance=ExtResource( 7 )]
+transform = Transform( 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.6, -1 )
+margin = 32
+billboard = false
+depth_test = true
+resize_mode = 0
+font_size_multiplier = 1.0
+font_color = Color( 1, 1, 1, 1 )
+background_color = Color( 0, 0, 0, 1 )
+transparent = false
+
+[node name="MainMenu" parent="." instance=ExtResource( 9 )]
+transform = Transform( 2.62268e-07, 0, -2, 0, 2, 0, 2, 0, 2.62268e-07, 1, 1.6, 0 )
+editor_live_update = false
+transparent = false
+
+[node name="Control" type="Control" parent="MainMenu"]
+margin_right = 768.0
+margin_bottom = 768.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoadGamePanel" type="Panel" parent="MainMenu/Control"]
+margin_right = 768.0
+margin_bottom = 768.0
+theme = ExtResource( 2 )
+custom_styles/panel = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckBox_ResetStartPosition" type="CheckBox" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 16.0
+margin_top = 352.0
+margin_right = 336.0
+margin_bottom = 400.0
+text = "Reset to Start Position"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckBox_ResetCraftingGuide" type="CheckBox" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 400.0
+margin_top = 352.0
+margin_right = 704.0
+margin_bottom = 400.0
+text = "Reset Crafting Guide"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_Title" type="Label" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 752.0
+margin_bottom = 64.0
+text = "Voxel Works Quest - v0.0.0"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_PointerToChangelog" type="Label" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 576.0
+margin_top = 704.0
+margin_right = 752.0
+margin_bottom = 753.0
+text = "Changelog -->"
+align = 2
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_PointerHowToPlay" type="Label" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 16.0
+margin_top = 704.0
+margin_right = 208.0
+margin_bottom = 753.0
+text = "<-- How to play"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SaveGame_ItemList" type="ItemList" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 15.0
+margin_top = 64.0
+margin_right = 752.0
+margin_bottom = 352.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_LoadGame" type="Button" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 16.0
+margin_top = 512.0
+margin_right = 240.0
+margin_bottom = 560.0
+text = "Load Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_NewGame" type="Button" parent="MainMenu/Control/LoadGamePanel"]
+margin_left = 528.0
+margin_top = 512.0
+margin_right = 752.0
+margin_bottom = 560.0
+text = "New Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NewGamePanel" type="Panel" parent="MainMenu/Control"]
+visible = false
+margin_right = 768.0
+margin_bottom = 768.0
+theme = ExtResource( 2 )
+custom_styles/panel = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_NewGame" type="Label" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 752.0
+margin_bottom = 64.0
+text = "Start New Game"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_WorldName" type="Label" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 16.0
+margin_top = 64.0
+margin_right = 256.0
+margin_bottom = 112.0
+text = "World Name"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextEdit_WorldName" type="TextEdit" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 256.0
+margin_top = 64.0
+margin_right = 752.0
+margin_bottom = 112.0
+text = "World Without Name"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_WorldSeed" type="Label" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 16.0
+margin_top = 128.0
+margin_right = 256.0
+margin_bottom = 176.0
+text = "World Seed"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SpinBox_WorldSeed" type="SpinBox" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 256.0
+margin_top = 128.0
+margin_right = 752.0
+margin_bottom = 176.0
+max_value = 1e+09
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_WorldGenerator" type="Label" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 16.0
+margin_top = 192.0
+margin_right = 256.0
+margin_bottom = 240.0
+text = "World Generator"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OptionButton_WorldGenerator" type="OptionButton" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 256.0
+margin_top = 192.0
+margin_right = 752.0
+margin_bottom = 240.0
+
+[node name="VirtualKeyboard" parent="MainMenu/Control/NewGamePanel" instance=ExtResource( 11 )]
+margin_left = 96.0
+margin_top = 320.0
+margin_right = 672.0
+margin_bottom = 560.0
+
+[node name="Button_BackFromNewGame" type="Button" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 16.0
+margin_top = 576.0
+margin_right = 240.0
+margin_bottom = 624.0
+text = "Back"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_StartNewGame" type="Button" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 528.0
+margin_top = 576.0
+margin_right = 752.0
+margin_bottom = 624.0
+text = "Start Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckBox_SportiveMode" type="CheckBox" parent="MainMenu/Control/NewGamePanel"]
+margin_left = 16.0
+margin_top = 256.0
+margin_right = 112.0
+margin_bottom = 304.0
+text = "Sportive Mode (no stick locomotion)"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="pressed" from="MainMenu/Control/LoadGamePanel/Button_LoadGame" to="." method="_on_Button_LoadGame_pressed"]
+[connection signal="pressed" from="MainMenu/Control/LoadGamePanel/Button_NewGame" to="." method="_on_Button_NewGame_pressed"]
+[connection signal="pressed" from="MainMenu/Control/NewGamePanel/Button_BackFromNewGame" to="." method="_on_Button_BackFromNewGame_pressed"]
+[connection signal="pressed" from="MainMenu/Control/NewGamePanel/Button_StartNewGame" to="." method="_on_Button_StartNewGame_pressed"]

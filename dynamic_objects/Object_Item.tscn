@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://dynamic_objects/scripts/Object_Item.gd" type="Script" id=1]
+
+[node name="Object_Item" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Geometry" type="Area" parent="."]
+collision_layer = 2
+collision_mask = 3
+
+[node name="HitPointCollection" type="Spatial" parent="Geometry"]

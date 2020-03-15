@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://dynamic_objects/scripts/Object_VoxelBlock.gd" type="Script" id=1]
+
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 0.062, 0.062, 0.062 )
+
+[node name="Object_VoxelBlock" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Geometry" type="Area" parent="."]
+
+[node name="HitPointCollection" type="Spatial" parent="Geometry"]
+
+[node name="Center" type="Spatial" parent="Geometry/HitPointCollection"]
+
+[node name="CollisionShape" type="CollisionShape" parent="Geometry"]
+shape = SubResource( 1 )

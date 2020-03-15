@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://dynamic_objects/scripts/Toolbelt.gd" type="Script" id=1]
+[ext_resource path="res://dynamic_objects/Toolbelt_Slot.tscn" type="PackedScene" id=2]
+
+[node name="Toolbelt" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Slots" type="Spatial" parent="."]
+
+[node name="Toolbelt_Slot_1" parent="Slots" instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, 0.3 )
+
+[node name="Toolbelt_Slot_2" parent="Slots" instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, -0.3 )

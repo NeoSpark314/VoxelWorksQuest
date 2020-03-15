@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://data/VoxelMaterial_Transparent.tres" type="Material" id=1]
+[ext_resource path="res://data/VoxelMaterial.tres" type="Material" id=2]
+[ext_resource path="res://levels/MainWorld.gd" type="Script" id=4]
+
+[sub_resource type="ProceduralSky" id=1]
+
+[sub_resource type="Environment" id=2]
+background_mode = 1
+background_sky = SubResource( 1 )
+background_color = Color( 0.603922, 0.890196, 1, 1 )
+ambient_light_color = Color( 1, 1, 1, 1 )
+ambient_light_energy = 0.5
+ambient_light_sky_contribution = 0.0
+fog_enabled = true
+fog_color = Color( 0.603922, 0.890196, 1, 1 )
+fog_depth_begin = 32.0
+fog_depth_end = 64.0
+
+[node name="MainWorld" type="Spatial"]
+script = ExtResource( 4 )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 2 )
+
+[node name="VoxelTerrain" type="VoxelTerrain" parent="."]
+view_distance = 64
+material/0 = ExtResource( 2 )
+material/1 = ExtResource( 1 )
+
+[node name="Container_DestroyVoxel" type="Spatial" parent="."]
+
+[node name="Container_BuildVoxel" type="Spatial" parent="."]
+
+[node name="Container_CraftingGrids" type="Spatial" parent="."]
+
+[node name="Container_Crates" type="Spatial" parent="."]
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( 0.798488, -0.445908, -0.404453, 0, -0.671837, 0.740699, -0.60201, -0.59144, -0.536454, 0, 0, 0 )
+light_energy = 1.5
+light_indirect_energy = 0.0

@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/default_dig_dig_immediate.ogg-5866ed2190220d5efe723507c788275b.oggstr"
+
+[deps]
+
+source_file="res://data/sfx/default_dig_dig_immediate.ogg"
+dest_files=[ "res://.import/default_dig_dig_immediate.ogg-5866ed2190220d5efe723507c788275b.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0
