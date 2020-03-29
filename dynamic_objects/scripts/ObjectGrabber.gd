@@ -23,7 +23,7 @@ func _ready():
 # the object to fit in the grid
 func _reparent_object_to_world(o : Spatial):
 	# ??!!
-	var scene_root = get_parent().get_parent().get_parent();
+	var scene_root = get_parent().get_parent().get_parent().get_parent();
 	
 	var p = o.get_parent();
 	if (p != null && p != scene_root):

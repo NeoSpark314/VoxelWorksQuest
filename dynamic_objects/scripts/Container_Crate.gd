@@ -50,10 +50,11 @@ func get_grab_object(controller):
 			return null;
 			
 		_item_counter -= 1;
-		print("returning item from crate")
+		#print("returning item from crate")
 		var obj = vdb.create_object_from_def(def);
 		add_child(obj);
 		update_label_text();
+		vdb._play_sfx(vdb.sfx_craft_success, controller.global_transform.origin);
 		return obj;
 	
 	return null;
@@ -80,9 +81,11 @@ func check_and_put_in_crate(obj):
 		geom.transform.origin = Vector3(0.5, 0.5, 0.5);
 	
 	if (_stored_def_name != def_name):
+		vdb._play_sfx(vdb.sfx_metal_footstep, obj.global_transform.origin);
 		return false;
 	else:
 		_item_counter += 1;
+		vdb._play_sfx(vdb.sfx_craft_success, obj.global_transform.origin);
 		update_label_text();
 		# removeing is currently done by the caller
 #		obj.visible = false;
@@ -91,18 +94,24 @@ func check_and_put_in_crate(obj):
 	
 		
 	return false;
+	
+func _show_label():
+	update_label_text();
+	var dir = vr.vrCamera.global_transform.basis.z;
+
+	var rot = 0;
+	
+	label.visible = true;
+	
 
 func _process(_dt):
 	var dist = label.global_transform.origin.distance_to(vr.vrCamera.global_transform.origin);
 	
 	if (dist < 1.0 && !label.visible):
-		update_label_text();
-		print("Visible")
-		label.visible = true;
+		_show_label();
 	
 	if (dist > 1.5 && label.visible):
-		print("Invisible")
 		label.visible = false;
 
 func _ready():
-	pass # Replace with function body.
+	label.visible = false;

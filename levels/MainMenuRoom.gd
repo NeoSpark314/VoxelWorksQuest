@@ -32,7 +32,9 @@ In Sportive Mode:
 # current changelog is always the first
 const changelog_text = [
 """Changelog for %s
- - ...
+ - Crate block to store items
+ - Fixed issue that re-applied old changes to new worlds
+ 
 
 more details at https://neospark314.itch.io/voxel-works-quest
 
@@ -269,7 +271,6 @@ func _on_Button_LoadGame_pressed():
 	vdb.startup_settings.reset_crafting_guide = _main_menu_checkbox_reset_crafting_guide.pressed;
 	vdb.startup_settings.load_game = true;
 	_start_game();
-	
 
 
 func _on_Button_NewGame_pressed():

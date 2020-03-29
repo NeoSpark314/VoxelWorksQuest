@@ -51,7 +51,7 @@ enable_gesture_to_button = true
 check_parent_can_static_grab = true
 
 [node name="OQ_VisibilityToggle" parent="OQ_ARVROrigin/OQ_LeftController" instance=ExtResource( 4 )]
-toggle_button = 14
+toggle_button = -1
 invisible_on_start = true
 
 [node name="OQ_UI2DLogWindow" parent="OQ_ARVROrigin/OQ_LeftController/OQ_VisibilityToggle" instance=ExtResource( 30 )]

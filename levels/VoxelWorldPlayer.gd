@@ -273,6 +273,9 @@ func _check_and_put_in_container(held_object):
 			held_object.queue_free();
 			vr.log_info("Put something in the crate!")
 			return true;
+		else:
+			var dir = vr.vrCamera.global_transform.origin - held_object.global_transform.origin;
+			held_object.global_transform.origin += dir * 0.5;
 	
 	return false;
 
@@ -422,7 +425,9 @@ func get_pointed_voxel(controller : ARVRController):
 	var hit = _terrain_tool.raycast(origin, forward, 10)
 	return hit
 
-
+# since now the player is a child of the main world we
+# need to call this function from the main world also for all objects that live
+# in the main world; it will be deleted from there
 func oq_can_static_grab(grabbed_body, grab_area : Area, grab_controller : ARVRController, overlapping_bodies : Array):
 	# we check if only a single body is overlapping; this is a simple workaround to not
 	# grab the voxel world when there is a rigid body lying around
@@ -698,6 +703,7 @@ func apply_save_dictionary(r : Dictionary):
 		
 	
 	for n in r.items_in_world:
+		print(n.def_name)
 		var def = vdb.get_def_from_name(n.def_name);
 		
 		if (def == null):
@@ -710,6 +716,7 @@ func apply_save_dictionary(r : Dictionary):
 		
 		var obj = vdb.create_object_from_def(def);
 		if (obj):
+			print("Created: " + obj.name)
 			parent_world.add_child(obj);
 			obj.apply_save_dictionary(n);
 		else:
@@ -721,7 +728,8 @@ func hack_check_and_give_craft_guide():
 	var has_guide = false;
 	var the_guide_in_world = null;
 	
-	for node in get_children():
+	for node in parent_world.get_children():
+		print(node.name)
 		if (("_item_def" in node)):
 			if (node._item_def.name == "crafting_guide"): 
 				has_guide = true;
@@ -729,6 +737,8 @@ func hack_check_and_give_craft_guide():
 				#remember the found guide to reset it if requested
 				if (vdb.startup_settings.reset_crafting_guide):
 					the_guide_in_world = node;
+					
+	print("has guide: " + str(has_guide))
 			
 	if (_player_inventory.has_item_or_block_by_name("crafting_guide")): has_guide = true;
 	
@@ -834,7 +844,10 @@ func move_player_into_terrain_after_load(_terrain):
 	if (parent_world.save_enabled): hack_check_and_give_craft_guide();
 	
 	
-	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wooden_crate);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wooden_crate);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wooden_crate);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonepick);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.gold_lump);
 	
 
 	$OQ_ARVROrigin/Locomotion_WalkInPlace.move_checker = self;
