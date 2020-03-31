@@ -2,6 +2,9 @@ extends Spatial
 
 var _item_def = null;
 
+func _has_predefined_geometry():
+	return false;
+
 func get_def():
 	return _item_def;
 
@@ -28,6 +31,7 @@ func get_voxel_def():
 
 func can_grab():
 	return true;
+
 
 
 func get_grab_object(controller):

@@ -176,7 +176,7 @@ func update_active_item():
 				vr.log_warning("Cannot create mesh in Inventory.update_active_item() from " + item.name);
 		elif (vdb.is_item_def(item)):
 			# Carefull here; I had a item dupe issue when this was a real item
-			var mesh = vdb.create_item_mesh_from_def(item); #item.cached_object_instance.duplicate();
+			var mesh = vdb._create_item_mesh_from_def(item); #item.cached_object_instance.duplicate();
 			if (mesh):
 				mesh.scale = Vector3(2.0,2.0,2.0);
 				mesh.translation = Vector3(0.0, -0.5, 0.2);

@@ -1,7 +1,7 @@
 extends Node
 
 # Increment this immediately after release
-const GAME_VERSION_STRING = "0.3.7";
+const GAME_VERSION_STRING = "0.3.8";
 const GAME_NAME = "Voxel Works Quest";
 
 const VOXEL_TEXTURE_ATLAS_SIZE = 32;
@@ -455,6 +455,15 @@ var item_def = [
 		stackability = 64,
 		item_orientation = Vector3(deg2rad(90), deg2rad(90), 0),
 	},
+	
+	{
+		name = "toilet_paper",
+		item_scene = "Item_ToiletPaper.tscn",
+		item_orientation = Vector3(deg2rad(90), deg2rad(90), 0),
+		grab_pixel = [8, 15],
+		stackability = 16,
+	},
+
 
 ]
 
@@ -1415,6 +1424,36 @@ var _crafting_recipies = [
 		tool_requirements = ["tg_hammer"],
 	},
 
+	{
+		recipe_name = "paper",
+		input = ["",          "",           "",
+				 "",          "",           "",
+				 "cg_wood",   "cg_wood",    "cg_wood"],
+		output = ["paper", "paper", "paper"],
+		crafttable_requirements = ["stone_workbench"],
+		tool_requirements = null,
+	},
+
+	{
+		recipe_name = "toilet_paper",
+		input = ["",          "paper",           "",
+				 "",          "stick",           "",
+				 "",          "paper",           ""],
+		output = ["toilet_paper"],
+		crafttable_requirements = ["tree", "wood_workbench", "stone_workbench"],
+		tool_requirements = null,
+	},
+
+	{
+		recipe_name = "gold_block",
+		input = ["toilet_paper", "toilet_paper", "toilet_paper",
+				 "toilet_paper", "toilet_paper", "toilet_paper",
+				 "toilet_paper", "toilet_paper", "toilet_paper"],
+		output = ["gold_block"],
+		crafttable_requirements = ["stone_workbench"],
+		tool_requirements = ["tg_hammer"],
+	},
+
 ]
 
 
@@ -1569,13 +1608,22 @@ const _item_mesh_size_scale = 0.5/ 16.0;
 func _get_item_grab_pos(item_def):
 	return Vector2(item_def.grab_pixel[0], item_def.grab_pixel[1]+1);
 
-func create_item_mesh_from_def(item_def) -> MeshInstance:
+func _create_item_mesh_from_def(item_def) -> MeshInstance:
 	if (item_def.cached_object_instance != null):
 		var mesh = item_def.cached_object_instance.find_node("mesh", false, false);
 		if (mesh):
 			return mesh.duplicate();
 		else:
 			vr.log_warning("item_def " + item_def.name + " has cached_object_instance but no mesh!");
+	
+	
+	# this is more or less a hack to check if an object has predefined geometry and the
+	# only return this one:
+	var _temp_hack_item_object = load("res://dynamic_objects/"+item_def.item_scene).instance();
+	if (_temp_hack_item_object._has_predefined_geometry()):
+		return _temp_hack_item_object._get_item_mesh().duplicate();
+
+	
 	var mesh : MeshInstance = load("res://static_objects/VoxelizedImageMeshInstance.tscn").instance();
 	
 	#var imgname = "res://data/" + item_def.image_filename;
@@ -1597,6 +1645,7 @@ func create_item_mesh_from_def(item_def) -> MeshInstance:
 # the behaviour more easily
 func create_voxelblock_object_from_def(voxel_def):
 	var voxel_object = null;
+	
 	if (voxel_def.cached_object_instance != null):
 		voxel_object = voxel_def.cached_object_instance.duplicate();
 	else:
@@ -1638,15 +1687,18 @@ func create_item_object_from_def(item_def):
 		
 		item_object_geometry.transform.basis =  Basis(item_def.item_orientation);
 		
-		var mesh = create_item_mesh_from_def(item_def);
-		mesh.name = "mesh";
+		var mesh = null;
 		var grab_pos = _get_item_grab_pos(item_def);
-
-		item_object_geometry.add_child(mesh);
+		
+		if (!item_object._has_predefined_geometry()):
+			mesh = _create_item_mesh_from_def(item_def);
+			mesh.name = "mesh";
+			item_object_geometry.add_child(mesh);
 
 		
 		var hit_point_collection : Spatial = item_object.get_hit_point_collection_node();
 		if (hit_point_collection == null): vr.log_error("create_item_object_from_def: no hit_point_collection")
+		
 		for i in range(0, item_def.hit_pixels.size(), 2):
 			var node = Spatial.new();
 			hit_point_collection.add_child(node);
@@ -1657,9 +1709,10 @@ func create_item_object_from_def(item_def):
 			
 			# This is used to debug the actual hit positions in the items
 			#node.add_child(load("res://static_objects/Debug_Axis.tscn").instance());
-		
-		for c in mesh._collision_shapes:
-			item_object_geometry.add_child(c);
+
+		if (!item_object._has_predefined_geometry()):
+			for c in mesh._collision_shapes:
+				item_object_geometry.add_child(c);
 
 		item_def.cached_object_instance = item_object.duplicate();
 

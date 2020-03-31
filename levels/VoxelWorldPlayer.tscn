@@ -37,6 +37,7 @@ far = 1024.0
 [node name="Feature_VRSimulator" parent="OQ_ARVROrigin" instance=ExtResource( 20 )]
 walk_speed = 4.0
 player_height = 1.7
+info_label_visible = false
 
 [node name="Locomotion_WalkInPlace" parent="OQ_ARVROrigin" instance=ExtResource( 25 )]
 active_in_desktop = true

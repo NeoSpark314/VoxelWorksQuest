@@ -32,13 +32,18 @@ In Sportive Mode:
 # current changelog is always the first
 const changelog_text = [
 """Changelog for %s
+ - Added craftable toilet paper
+
+more details at https://neospark314.itch.io/voxel-works-quest
+
+<-- Start Game (look left)""" % [vdb.GAME_VERSION_STRING],
+"""Changelog for 0.3.7
  - Crate block to store items
  - Fixed issue that re-applied old changes to new worlds
  
 
 more details at https://neospark314.itch.io/voxel-works-quest
-
-<-- Start Game (look left)""" % [vdb.GAME_VERSION_STRING],
+""",
 """Changelog for 0.3.6
  - Multiple savegames with different seeds are now possible
  - Added wood hammer and steel hammer

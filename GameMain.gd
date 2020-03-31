@@ -11,7 +11,7 @@ func _ready():
 	vr.scene_switch_root = self;
 
 	if (!vr.inVR): # for quick testing on desktop
-		#vr.switch_scene("res://levels/MainWorld.tscn"); return;
+		vr.switch_scene("res://levels/MainWorld.tscn"); return;
 		#vr.switch_scene("res://levels/DungeonInstance.tscn"); return;
 		pass;
 

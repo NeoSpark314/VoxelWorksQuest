@@ -844,7 +844,24 @@ func move_player_into_terrain_after_load(_terrain):
 	if (parent_world.save_enabled): hack_check_and_give_craft_guide();
 	
 	
-	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wooden_crate);
+#	for i in range(0, 32):
+#		_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.toilet_paper);
+#
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stick);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonepick);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonehammer);
+#
+#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stone_workbench);
+
+	
 	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wooden_crate);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonepick);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.gold_lump);
