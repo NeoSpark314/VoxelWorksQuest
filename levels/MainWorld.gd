@@ -23,5 +23,16 @@ func _ready():
 	terrain.stream = vdb.main_world_generator;
 	
 	vdb.voxel_world_player.move_player_into_terrain_after_load(terrain);
+	
+	#$model/AnimationPlayer.get_animation("test animation").set_loop(true)
+	#$model/AnimationPlayer.play("test animation")
+	
+#	var bunny = load("res://actors/Bunny.tscn").instance();
+#	add_child(bunny);
+#	bunny.global_transform.origin= Vector3(9, 3, 0);
+#
+#	var testhuman = load("res://actors/TestHuman.tscn").instance();
+#	add_child(testhuman);
+#	testhuman.global_transform.origin= Vector3(15, 1, 5);
 
 

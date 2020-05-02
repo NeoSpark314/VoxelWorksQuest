@@ -18,11 +18,11 @@ func _ready():
 	$damage_1.init_voxel_cube(temp_material, Vector2(0,0), Vector2(1, 1.0/10.0), 1.0 + eps, -Vector3(eps2,eps2,eps2));
 
 
-func initialize(voxel_position, hit_position, voxel_def):
-	_max_hit_points = voxel_def.stability;
+func initialize(voxel_position, hit_position, voxel_block_defs):
+	_max_hit_points = voxel_block_defs.stability;
 	translation = voxel_position;
 	_global_hit_position = hit_position;
-	_voxel_def = voxel_def;
+	_voxel_def = voxel_block_defs;
 	
 
 var _max_hit_points = 3;

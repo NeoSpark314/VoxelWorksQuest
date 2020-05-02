@@ -83,6 +83,25 @@ func remove_dbg_info(key):
 	_reorder_dbg_labels();
 
 
+var _notification_scene = null;
+
+func show_notification(title, text):
+	if (_notification_scene == null): _notification_scene = load(oq_base_dir + "/OQ_UI2D/OQ_UI2DNotificationWindow.tscn");
+	var nw = _notification_scene.instance();
+	
+	nw.set_notificaiton_text(title, text);
+
+	if (scene_switch_root):
+		scene_switch_root.add_child(nw);
+	else:
+		vr.vrOrigin.get_parent().add_child(nw);
+	var pos = vr.vrCamera.global_transform.origin - vr.vrCamera.global_transform.basis.z;
+	
+	nw.look_at_from_position(pos, vr.vrCamera.global_transform.origin, Vector3(0,1,0));
+	
+	
+	
+	
 # returns the current player height based on the difference between
 # the height of origin and camera; this assumes that tracking is floor level
 func get_current_player_height():
@@ -399,21 +418,27 @@ func get_controller_angular_velocity(controller_id):
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_angular_velocity[controller_id];
 	else:
-		return ovrUtilities.get_controller_angular_velocity(controller_id);
+		var v = ovrUtilities.get_controller_angular_velocity(controller_id);
+		if (v != null): return v;
+	return Vector3(0,0,0);
 
 func get_controller_angular_acceleration(controller_id):
 	if (!ovrUtilities):
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_angular_acceleration[controller_id];
 	else:
-		return ovrUtilities.get_controller_angular_acceleration(controller_id);
+		var v =  ovrUtilities.get_controller_angular_acceleration(controller_id);
+		if (v != null): return v;
+	return Vector3(0,0,0);
 	
 func get_controller_linear_velocity(controller_id):
 	if (!ovrUtilities):
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_linear_velocity[controller_id];
 	else:
-		return ovrUtilities.get_controller_linear_velocity(controller_id);
+		var v =  ovrUtilities.get_controller_linear_velocity(controller_id);
+		if (v != null): return v;
+	return Vector3(0,0,0);
 
 
 func get_controller_linear_acceleration(controller_id):
@@ -421,7 +446,9 @@ func get_controller_linear_acceleration(controller_id):
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_linear_acceleration[controller_id];
 	else:
-		return ovrUtilities.get_controller_linear_acceleration(controller_id);
+		var v =  ovrUtilities.get_controller_linear_acceleration(controller_id);
+		if (v != null): return v;
+	return Vector3(0,0,0);
 
 
 func get_head_angular_velocity():
@@ -429,21 +456,27 @@ func get_head_angular_velocity():
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_angular_velocity[0];
 	else:
-		return ovrUtilities.get_head_angular_velocity();
+		var v =  ovrUtilities.get_head_angular_velocity();
+		if (v != null): return v;
+	return Vector3(0,0,0);
 
 func get_head_angular_acceleration():
 	if (!ovrUtilities):
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_angular_acceleration[0];
 	else:
-		return ovrUtilities.get_head_angular_acceleration();
+		var v = ovrUtilities.get_head_angular_acceleration();
+		if (v != null): return v;
+	return Vector3(0,0,0);
 	
 func get_head_linear_velocity():
 	if (!ovrUtilities):
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_linear_velocity[0];
 	else:
-		return ovrUtilities.get_head_linear_velocity();
+		var v = ovrUtilities.get_head_linear_velocity();
+		if (v != null): return v;
+	return Vector3(0,0,0);
 
 
 func get_head_linear_acceleration():
@@ -451,7 +484,9 @@ func get_head_linear_acceleration():
 		#return Vector3(0,0,0); # we could implement a fallback here
 		return _sim_linear_acceleration[0];
 	else:
-		return ovrUtilities.get_head_linear_acceleration();
+		var v = ovrUtilities.get_head_linear_acceleration();
+		if (v != null): return v;
+	return Vector3(0,0,0);
 
 
 func get_ipd():
@@ -527,21 +562,25 @@ func _perform_switch_scene(scene_path):
 	print("_perform_switch_scene")
 	print(scene_path)
 	
-	for s in scene_switch_root.get_children():
-		if (s.has_method("scene_exit")): s.scene_exit();
-		scene_switch_root.remove_child(s);
-		s.queue_free();
-		_dbg_labels.clear(); # make sure to also clear the debug label dictionary as they might be created in the scene above
+	if scene_switch_root != null:
+		for s in scene_switch_root.get_children():
+			if (s.has_method("scene_exit")): s.scene_exit();
+			scene_switch_root.remove_child(s);
+			s.queue_free();
+			_dbg_labels.clear(); # make sure to also clear the debug label dictionary as they might be created in the scene above
 
-	var next_scene_resource = load(scene_path);
-	if (next_scene_resource):
-		_active_scene_path = scene_path;
-		var next_scene = next_scene_resource.instance();
-		log_info("    switching to scene '%s'" % scene_path)
-		scene_switch_root.add_child(next_scene);
-		if (next_scene.has_method("scene_enter")): next_scene.scene_enter();
+		var next_scene_resource = load(scene_path);
+		if (next_scene_resource):
+			_active_scene_path = scene_path;
+			var next_scene = next_scene_resource.instance();
+			log_info("    switching to scene '%s'" % scene_path)
+			scene_switch_root.add_child(next_scene);
+			if (next_scene.has_method("scene_enter")): next_scene.scene_enter();
+		else:
+			log_error("could not load scene '%s'" % scene_path)
 	else:
-		log_error("could not load scene '%s'" % scene_path)
+		get_tree().change_scene(scene_path)
+	
 
 
 var _target_scene_path = null;
@@ -558,7 +597,7 @@ func switch_scene(scene_path, fade_time = 0.1, wait_time = 0.0):
 		yield(get_tree().create_timer(wait_time), "timeout")
 
 	if (scene_switch_root == null):
-		log_error("vr.switch_scene(...) called but no scene_switch_root configured");
+		log_error("vr.switch_scene(...) called but no scene_switch_root configured. Will use default scene change.");
 	if (_active_scene_path == scene_path): return;
 
 	if (fade_time <= 0.0):
@@ -578,7 +617,7 @@ func _check_for_scene_switch_and_fade(dt):
 	switch_scene_in_progress = false;
 	if (_target_scene_path != null && !_switch_performed):
 		if (_scene_switch_fade_out_time < _scene_switch_fade_out_duration):
-			var c = 1.0 - _scene_switch_fade_out_time / _scene_switch_fade_out_duration;
+			var c = 1.0 - min(1.0, _scene_switch_fade_out_time / (_scene_switch_fade_out_duration*0.9));
 			set_default_layer_color_scale(Color(c, c, c, c));
 			_scene_switch_fade_out_time += dt;
 			switch_scene_in_progress = true;
@@ -661,6 +700,7 @@ func initialize():
 		log_info("  Found OpenVR Interface.");
 		if arvr_open_vr_interface.initialize():
 			get_viewport().arvr = true;
+			get_viewport().keep_3d_linear = true
 			Engine.target_fps = 90 # TODO: this is headset dependent => figure out how to get this info at runtime
 			OS.vsync_enabled = false;
 			inVR = true;

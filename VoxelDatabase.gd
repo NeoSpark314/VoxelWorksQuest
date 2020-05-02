@@ -1,12 +1,20 @@
 extends Node
 
 # Increment this immediately after release
-const GAME_VERSION_STRING = "0.3.8";
+const GAME_VERSION_STRING = "0.3.9";
 const GAME_NAME = "Voxel Works Quest";
 
 const VOXEL_TEXTURE_ATLAS_SIZE = 32;
 
-var casual_mode = true;
+#var casual_mode = true;
+
+enum GAME_MODE {
+	STANDARD,
+	SPORTIVE,
+	CREATIVE
+}
+
+var game_mode = GAME_MODE.STANDARD;
 
 #var current_save_file = "game.save"; # this will be the default when not launched via main menu
 var current_save_file_infix = "pre0.3.6_sportive";
@@ -17,6 +25,9 @@ var gameplay_settings := {
 	stick_locomotion_turn_mode = vr.LocomotionStickTurnType.CLICK, # 0 click turning; 1 smooth turning
 	stick_locomotion_click_turn_angle = 60,
 	stick_locomotion_smooth_turn_speed = 90,
+	stick_locomotion_speed_multiplier = 1.0,
+	
+	toolbelt_require_second_button = false, # an optional safety setting to avoid accidentally grabbing items from the toolbelt
 }
 
 var _gameplay_settings_change_listener = [];
@@ -201,10 +212,8 @@ var _item_defaults = {
 	item_tile_x = 0, item_tile_y = 0,
 	hit_pixels = [8, 8], grab_pixel = [8, 8],
 	dig_damage = 1, hack_damage = 1, chop_damage = 1,
-	damage = 1, stackability = 1,
-	
+	physical_damage = 1, stackability = 1,
 	tool_groups = [],
-	
 }
 
 
@@ -236,7 +245,7 @@ var item_def = [
 		name = "woodsword",
 		item_tile_x = 3, item_tile_y = 0,
 		hit_pixels = [13,2], grab_pixel = [2, 13],
-		damage = 2,
+		physical_damage = 2,
 	},
 
 	{
@@ -266,7 +275,7 @@ var item_def = [
 		name = "stonesword",
 		item_tile_x = 7, item_tile_y = 0,
 		hit_pixels = [13,2], grab_pixel = [2, 13],
-		damage = 3,
+		physical_damage = 3,
 	},
 	{
 		name = "woodhammer",
@@ -323,7 +332,7 @@ var item_def = [
 		name = "bronzesword",
 		item_tile_x = 11, item_tile_y = 0,
 		hit_pixels = [13,2], grab_pixel = [2, 13],
-		damage = 4,
+		physical_damage = 4,
 	},
 	
 	{
@@ -353,7 +362,7 @@ var item_def = [
 		name = "steelsword",
 		item_tile_x = 15, item_tile_y = 0,
 		hit_pixels = [13,2], grab_pixel = [2, 13],
-		damage = 5,
+		physical_damage = 5,
 	},
 
 	{
@@ -468,18 +477,19 @@ var item_def = [
 ]
 
 # this is all a bit ugly; but so far I have no better design idea
-func is_item_def(def):
+func is_item_definition(def):
 	return "item_tile_x" in def;
 
-func is_voxel_def(def):
+func is_voxel_block_definition(def):
 	return "cube_tiles_x" in def;
 
 
-var _voxel_defaults = {
+var _voxel_block_defaults = {
 	name = "unnamed_voxel",
 	id = -1,
 	transparent = false,
 	mine_groups = [CRUMBLY],
+	breakable_by_tool_groups = null, # make a block only breakable by specific tool_groups
 	material_id = 0,
 	geometry_type = GEOMETRY_TYPE.Cube,
 	geometry_height = 1.0,
@@ -506,18 +516,18 @@ var _voxel_defaults = {
 
 # this is a convenience dictionary that will
 # get initialized with the names => id mappings (only voxels)
-var voxel_types = {
+var voxel_block_names2id = {
 	
 }
 
 # full list of all defs by name (both voxel and items)
-var name_to_def = {};
+var names2blockORitem_def = {};
 
 func get_def_from_name(_name : String, warn := true):
-	if (!name_to_def.has(_name)):
+	if (!names2blockORitem_def.has(_name)):
 		if (warn): vr.log_error("vdb.get_def_from_name() does not contain " + _name);
 		return null;
-	return name_to_def[_name];
+	return names2blockORitem_def[_name];
 
 const CRUMBLY = "crumbly";
 const CRACKY = "cracky";
@@ -526,7 +536,7 @@ const SNAPPY = "snappy";
 const METALLIC = "metallic";
 const BYHAND = "hand";
 
-var voxel_def = [
+var voxel_block_defs = [
 	{
 		name = "air",
 		transparent = true,
@@ -861,8 +871,8 @@ var voxel_def = [
 		cube_tiles_x = 13,
 		transparent = true,
 		sounds = _sfx_defaults.choppy,
-		geometry_type = GEOMETRY_TYPE.Custom,
-		custom_mesh_path = "res://data/models3d/Fence_full_N.mesh",
+		#geometry_type = GEOMETRY_TYPE.Custom,
+		#custom_mesh_path = "res://data/models3d/Fence_full_N.mesh",
 		dig_resistance = 3, hack_resistance = 0, chop_resistance = 0,
 	},
 	
@@ -961,6 +971,7 @@ var voxel_def = [
 		cube_tiles_y = 2,
 		sounds = _sfx_defaults.choppy,
 		stability = 8,
+		breakable_by_tool_groups = [BYHAND],
 	},
 	
 		{
@@ -971,6 +982,7 @@ var voxel_def = [
 		cube_tiles_y = 2,
 		sounds = _sfx_defaults.choppy,
 		stability = 8,
+		breakable_by_tool_groups = [BYHAND],
 	},
 
 	{
@@ -980,6 +992,7 @@ var voxel_def = [
 		cube_tiles_y = 2,
 		sounds = _sfx_defaults.cracky,
 		stability = 8,
+		breakable_by_tool_groups = [BYHAND],
 	},
 	
 	{
@@ -1545,39 +1558,40 @@ func peform_crafting(craft_grid_defs : Array, crafting_bench_voxel_def, held_obj
 		ret = [];
 		vr.log_info("Crafting " + str(recipe.output));
 		for out in recipe.output:
-			var def = name_to_def[out];
+			var def = names2blockORitem_def[out];
 			if (def == null):
 				vr.log_error("check_crafting(): Resulting Craft Item " + out + " does not exist!!");
 			else:
-				if is_voxel_def(def): ret.append(create_voxelblock_object_from_def(def));
-				elif is_item_def(def): ret.append(create_item_object_from_def(def));
+				if is_voxel_block_definition(def): ret.append(create_voxelblock_object_from_def(def));
+				elif is_item_definition(def): ret.append(create_item_object_from_def(def));
 				else:
 					vr.log_error("heck_crafting(): unknown def: " + str(def));
 	
 	return ret;
 
-onready var voxel_material = preload("res://data/VoxelMaterial.tres");
-onready var voxel_material_transparent = preload("res://data/VoxelMaterial_Transparent.tres");
+onready var voxel_material : SpatialMaterial = preload("res://data/VoxelMaterial.tres");
+onready var voxel_material_transparent : SpatialMaterial = preload("res://data/VoxelMaterial_Transparent.tres");
+#onready var voxel_default_texture = voxel_material.albedo_texture # save here because loading on android did not work from res://
 
-# this creates a mesh textured as a voxel in the world taken from a voxel_def
-func create_voxel_mesh_from_def(voxel_def) -> MeshInstance:
-	if (voxel_def.cached_object_instance != null):
-		return voxel_def.cached_object_instance.find_node("mesh", false, false).duplicate();
+# this creates a mesh textured as a voxel in the world taken from a voxel_block_defs
+func create_voxel_mesh_from_def(voxel_block_defs) -> MeshInstance:
+	if (voxel_block_defs.cached_object_instance != null):
+		return voxel_block_defs.cached_object_instance.find_node("mesh", false, false).duplicate();
 	
 	var mesh_instance : MeshInstance = null;
 	var du = 1.0 / VOXEL_TEXTURE_ATLAS_SIZE;
 
 	
-	if (voxel_def.custom_mesh_path):
-		var mesh = load(voxel_def.custom_mesh_path);
-		if (mesh == null): vr.log_error("Could not load custem mesh in create_voxel_mesh_from_def(): " + voxel_def.custom_mesh_path + " for voxeldef " + voxel_def.name);
+	if (voxel_block_defs.custom_mesh_path):
+		var mesh = load(voxel_block_defs.custom_mesh_path);
+		if (mesh == null): vr.log_error("Could not load custem mesh in create_voxel_mesh_from_def(): " + voxel_block_defs.custom_mesh_path + " for voxeldef " + voxel_block_defs.name);
 		
 		mesh_instance = MeshInstance.new();
 		mesh_instance.mesh = mesh; 
 		var mat = voxel_material.duplicate();
 		
-		var ox = voxel_def.cube_tiles_x;
-		var oy = voxel_def.cube_tiles_y;
+		var ox = voxel_block_defs.cube_tiles_x;
+		var oy = voxel_block_defs.cube_tiles_y;
 		
 		mat.uv1_offset = Vector3(ox*du, oy*du, 0.0);
 		mat.uv1_scale = Vector3(du, du, 1.0);
@@ -1590,8 +1604,8 @@ func create_voxel_mesh_from_def(voxel_def) -> MeshInstance:
 	mesh_instance = load("res://static_objects/VoxelCubeMeshInstance.tscn").instance();
 	
 	
-	var x = voxel_def.cube_tiles_x;
-	var y = voxel_def.cube_tiles_y;
+	var x = voxel_block_defs.cube_tiles_x;
+	var y = voxel_block_defs.cube_tiles_y;
 	if (!(x is Array)): x = [x, x, x, x, x, x];
 	if (!(y is Array)): y = [y, y, y, y, y, y];
 	var uv_offsets = [];
@@ -1643,33 +1657,33 @@ func _create_item_mesh_from_def(item_def) -> MeshInstance:
 
 # For now the logic is to get instances form here so we are able to adjust
 # the behaviour more easily
-func create_voxelblock_object_from_def(voxel_def):
+func create_voxelblock_object_from_def(voxel_block_defs):
 	var voxel_object = null;
 	
-	if (voxel_def.cached_object_instance != null):
-		voxel_object = voxel_def.cached_object_instance.duplicate();
+	if (voxel_block_defs.cached_object_instance != null):
+		voxel_object = voxel_block_defs.cached_object_instance.duplicate();
 	else:
 		# not sure what we will all need here
 		voxel_object = load("res://dynamic_objects/Object_VoxelBlock.tscn").instance();
-		var mesh : MeshInstance = create_voxel_mesh_from_def(voxel_def);
+		var mesh : MeshInstance = create_voxel_mesh_from_def(voxel_block_defs);
 		
 		mesh.scale = Vector3(0.125, 0.125, 0.125);
 		mesh.transform.origin = Vector3(-0.062, -0.062, -0.062);
 		mesh.name = "mesh";
 		
 		voxel_object.add_child(mesh);
-		voxel_object.name = voxel_def.name;
+		voxel_object.name = voxel_block_defs.name;
 		
-		voxel_def.cached_object_instance = voxel_object.duplicate();
+		voxel_block_defs.cached_object_instance = voxel_object.duplicate();
 		
-	voxel_object._voxel_def = voxel_def;
+	voxel_object._voxel_def = voxel_block_defs;
 	
 	return voxel_object;
 	
 func create_object_from_def(def):
-	if is_item_def(def):
+	if is_item_definition(def):
 		return create_item_object_from_def(def);
-	elif is_voxel_def(def):
+	elif is_voxel_block_definition(def):
 		return create_voxelblock_object_from_def(def);
 	else:
 		vr.log_error("vdb.create_object_from_def() got invalid def: " + str(def));
@@ -1721,21 +1735,21 @@ func create_item_object_from_def(item_def):
 
 
 # sets all not yet set values via the defaults structure
-func _init_full_voxel_array():
-	vr.log_info("Initializing %d voxel definitions" % voxel_def.size());
-	for v in voxel_def:
-		for k in _voxel_defaults.keys():
+func _init_full_voxelblock_array():
+	vr.log_info("Initializing %d voxel definitions" % voxel_block_defs.size());
+	for v in voxel_block_defs:
+		for k in _voxel_block_defaults.keys():
 			if (!v.has(k)):
-				v[k] = _voxel_defaults[k];
+				v[k] = _voxel_block_defaults[k];
 				
 		# set craft_groups
 		if (!v.has("craft_groups")):
 			v["craft_groups"] = [];
 				
-		if name_to_def.has(v.name):
+		if names2blockORitem_def.has(v.name):
 			vr.log_error("Duplicated voxel name " + v.name + " found!!");
 		else:
-			name_to_def[v.name] = v;
+			names2blockORitem_def[v.name] = v;
 
 func _init_full_item_array():
 	vr.log_info("Initializing %d item definitions" % item_def.size());
@@ -1747,10 +1761,10 @@ func _init_full_item_array():
 		if (!i.has("craft_groups")):
 			i["craft_groups"] = [];
 
-		if name_to_def.has(i.name):
+		if names2blockORitem_def.has(i.name):
 			vr.log_error("Duplicated item name " + i.name + " found!!");
 		else:
-			name_to_def[i.name] = i;
+			names2blockORitem_def[i.name] = i;
 
 var voxel_library = VoxelLibrary.new();
 
@@ -1758,9 +1772,9 @@ func _initialize_voxel_library():
 	voxel_library.atlas_size = VOXEL_TEXTURE_ATLAS_SIZE;
 	
 	var id = 0;
-	for vd in voxel_def:
+	for vd in voxel_block_defs:
 		vd.id = id;
-		voxel_types[vd.name] = id;
+		voxel_block_names2id[vd.name] = id;
 		if (vd.geometry_type == GEOMETRY_TYPE.None || 
 			vd.geometry_type == GEOMETRY_TYPE.Cube ||
 			vd.geometry_type == GEOMETRY_TYPE.Plant ||
@@ -1854,7 +1868,8 @@ func _get_save_dictionary(_persisted_nodes_array : Array):
 			"vrOrigin_position" : _vec3_to_arr(vr.vrOrigin.global_transform.origin),
 			"vrCamera_position" : _vec3_to_arr(vr.vrCamera.global_transform.origin),
 			"vrCamera_orientation" : _basis_to_arr(vr.vrCamera.global_transform.basis),
-			"casual_mode" : casual_mode,
+			#"casual_mode" : casual_mode,
+			"game_mode" : game_mode
 		},
 		"data" : {
 			"block_data" : main_world_generator._persisted_blocks,
@@ -2037,7 +2052,8 @@ var startup_settings = {
 	generator_seed = 0,
 	generator_name = "V1", 
 	world_name = "World Without Name",
-	casual_mode = false,
+	#casual_mode = false,
+	game_mode = GAME_MODE.STANDARD,
 	reset_start_position = false,
 	reset_crafting_guide = false,
 };
@@ -2049,7 +2065,7 @@ func persistence_load_and_start_game():
 	current_save_file_infix = startup_settings.save_file_infix;
 	
 	var generator_seed = startup_settings.generator_seed; # default seed
-	casual_mode = startup_settings.casual_mode;
+	game_mode = startup_settings.game_mode;
 	world_name = startup_settings.world_name;
 	
 	if (startup_settings.load_game):
@@ -2086,7 +2102,12 @@ func persistence_load_and_start_game():
 					
 					generator_seed = r.desc.terrain_generator_seed;
 					#TODO: load generator here
-					casual_mode = r.desc.casual_mode;
+					
+					if (r.desc.has("casual_mode")): # legacy loading before introducing game mode
+						if (r.desc.casual_mode): game_mode = GAME_MODE.STANDARD;
+						else: game_mode = GAME_MODE.SPORTIVE;
+					else:
+						game_mode = r.desc.game_mode;
 					world_name = r.desc.world_name;
 	
 					vr.log_info("Loaded game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
@@ -2249,7 +2270,7 @@ func initialize():
 	
 	session_start_statistics = get_global_statistics_copy(); # to make sure we have a valid copy even if we don't load
 	_item_image_data = load("res://data/items.png").get_data();
-	_init_full_voxel_array();
+	_init_full_voxelblock_array();
 	_init_full_item_array();
 	_init_sfx();
 	_initialize_voxel_library();

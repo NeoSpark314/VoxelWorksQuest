@@ -10,6 +10,10 @@ onready var locomotion_stick = $OQ_ARVROrigin/Locomotion_Stick;
 onready var feature_falling = $OQ_ARVROrigin/Feature_Falling;
 onready var featur_climbing = $OQ_ARVROrigin/Feature_Climbing;
 
+onready var _left_ui_raycast = $OQ_ARVROrigin/OQ_LeftController/Feature_UIRayCast;
+onready var _right_ui_raycast = $OQ_ARVROrigin/OQ_RightController/Feature_UIRayCast;
+
+
 var auto_put_in_inventory = true;
 var _player_inventory = null;
 var _player_toolbelt = null;
@@ -19,6 +23,9 @@ var parent_container_destroy_voxel = null;
 var parent_container_crafting_grids = null;
 var parent_container_crates = null;
 
+
+# special variables for creative
+var _creative_is_flying = false;
 
 
 var _global_dt := 0.0;
@@ -56,7 +63,7 @@ func can_build_at_pos(voxel_pos):
 	return false;
 	
 func _add_build_voxel(voxel_id, voxel_position, hit_position, held_obj, controller, is_physical):
-	#var voxel_def = vdb.voxel_def[1];
+	#var voxel_block_def = vdb.voxel_block_defs[1];
 	if (held_obj == null): return false; # can't build out of nothing
 	
 	var block_def = held_obj.get_voxel_def();
@@ -87,7 +94,7 @@ func _add_build_voxel(voxel_id, voxel_position, hit_position, held_obj, controll
 	
 # here I would like to perform additional checks to perform game logic
 # that needs to happen when a voxel is removed
-func check_and_remove_voxel(voxel_def, voxel_position):
+func check_and_remove_voxel(voxel_block_def, voxel_position):
 	remove_voxel(voxel_position); 
 	
 	var above_position = voxel_position + Vector3(0, 1, 0);
@@ -105,40 +112,47 @@ func find_crate_for_pos(pos):
 			return c;
 	return null;
 
-	
-func compute_mining_results(voxel_def, held_obj):
+
+func _get_item_name_from_held_obj(held_obj):
+	var item_name = "hand";
+	if (held_obj): 
+		var item_def = held_obj.get_item_def();
+		item_name = item_def.name;
+	return item_name;
+
+func _get_toolgroups_from_held_obj(held_obj):
+	var tool_groups = [vdb.BYHAND];
+	if (held_obj): 
+		var item_def = held_obj.get_item_def();
+		tool_groups = item_def.can_mine_groups;
+		
+	return tool_groups;
+
+
+func compute_mining_results(voxel_block_def, held_obj):
 	var ret = [];
 	
 	var can_mine = false;
 	
-	
-	
 	# now check if we can actually collect it:
-	var tool_groups = [vdb.BYHAND];
-	
-	var item_name = "hand";
-	
-	if (held_obj): 
-		var item_def = held_obj.get_item_def();
-		item_name = item_def.name;
-		tool_groups = item_def.can_mine_groups;
+	var tool_groups = _get_toolgroups_from_held_obj(held_obj);
+	if (!tool_groups): return ret;
+	var item_name = _get_item_name_from_held_obj(held_obj);
 		
-		if (!tool_groups): return ret;
-	
-	for mg in voxel_def.mine_groups:
+	for mg in voxel_block_def.mine_groups:
 		for tg in tool_groups:
 			if (tg == mg): can_mine = true;
 
 	if (can_mine): 
-		if voxel_def.mine_results != null:
-			for mr in voxel_def.mine_results:
+		if voxel_block_def.mine_results != null:
+			for mr in voxel_block_def.mine_results:
 				ret.append(vdb.get_def_from_name(mr));
 		else: # we just mine the actual block
-			ret.append(voxel_def);
+			ret.append(voxel_block_def);
 				
 		# check if we have special results for special mine items
-		if ("special_mine_items" in voxel_def && vdb.is_in_array(voxel_def.special_mine_items, item_name)):
-			for mr in voxel_def.special_mine_results:
+		if ("special_mine_items" in voxel_block_def && vdb.is_in_array(voxel_block_def.special_mine_items, item_name)):
+			for mr in voxel_block_def.special_mine_results:
 				ret.append(vdb.get_def_from_name(mr));
 		
 	
@@ -150,18 +164,28 @@ func _add_attack_voxel(voxel_id, voxel_position, hit_position, held_obj, control
 	
 
 	# check that a crate is empty for mining it
-	if (voxel_id == vdb.voxel_types.wooden_crate):
+	if (voxel_id == vdb.voxel_block_names2id.wooden_crate):
 		var c = find_crate_for_pos(hit_position);
 		if (c != null && c._item_counter > 0): return false;
 
-	var voxel_def = vdb.voxel_def[voxel_id];
+	var voxel_block_def = vdb.voxel_block_defs[voxel_id];
 	
-	if (!voxel_def.can_mine): return false;
-	if (voxel_def.mine_groups == null): return false;
+	if (!voxel_block_def.can_mine): return false;
+	if (voxel_block_def.mine_groups == null): return false;
 	
-	
+	# here we check if the voxel_block has a specific definition of what tools
+	# can break it; if it is not breakable by the currently held tool we just
+	# return
+	var tool_groups = _get_toolgroups_from_held_obj(held_obj);
+	var can_break = true;
+	if (voxel_block_def.breakable_by_tool_groups != null):
+		can_break = false;
+		for mg in voxel_block_def.breakable_by_tool_groups:
+			for tg in tool_groups:
+				if (tg == mg): can_break = true;
+	if (!can_break): return false;
 
-	
+
 	# here we will need to compute the damage based on the tool used
 	var dig_damage = 1;
 	var hack_damage = 0;
@@ -175,9 +199,9 @@ func _add_attack_voxel(voxel_id, voxel_position, hit_position, held_obj, control
 		hack_damage = item_def.hack_damage;
 		chop_damage = item_def.chop_damage;
 	
-	var damage =   max(dig_damage - voxel_def.dig_resistance, 0) \
-				 + max(hack_damage - voxel_def.hack_resistance, 0) \
-				 + max(chop_damage - voxel_def.chop_resistance, 0);
+	var damage =   max(dig_damage - voxel_block_def.dig_resistance, 0) \
+				 + max(hack_damage - voxel_block_def.hack_resistance, 0) \
+				 + max(chop_damage - voxel_block_def.chop_resistance, 0);
 
 	if (damage <= 0): 
 		vdb._play_sfx(vdb.sfx_cant_mine, hit_position);
@@ -195,19 +219,19 @@ func _add_attack_voxel(voxel_id, voxel_position, hit_position, held_obj, control
 	
 	if (destroy_node == null):
 		destroy_node = _destroy_voxel_node.instance();
-		destroy_node.initialize(voxel_position, hit_position, voxel_def);
+		destroy_node.initialize(voxel_position, hit_position, voxel_block_def);
 		parent_container_destroy_voxel.add_child(destroy_node);
 		
 	
 	# apply the actual damage now to the node; and check if it returns true
 	# which means the targeted voxel should be destroyed
 	if (destroy_node.increment_destroy(damage)):
-		check_and_remove_voxel(voxel_def, voxel_position);
+		check_and_remove_voxel(voxel_block_def, voxel_position);
 		if (is_physical): vdb.global_statistics.mined_blocks += 1;
 		
 		
 		
-		var mining_results = compute_mining_results(voxel_def, held_obj);
+		var mining_results = compute_mining_results(voxel_block_def, held_obj);
 		
 		if (mining_results):
 			for def in mining_results:
@@ -220,15 +244,15 @@ func _add_attack_voxel(voxel_id, voxel_position, hit_position, held_obj, control
 
 
 func _is_a_crafting_voxel(vid):
-	if (vid == vdb.voxel_types.tree): return true;
-	if (vid == vdb.voxel_types.aspen_tree): return true;
-	if (vid == vdb.voxel_types.pine_tree): return true;
-	if (vid == vdb.voxel_types.jungle_tree): return true;
+	if (vid == vdb.voxel_block_names2id.tree): return true;
+	if (vid == vdb.voxel_block_names2id.aspen_tree): return true;
+	if (vid == vdb.voxel_block_names2id.pine_tree): return true;
+	if (vid == vdb.voxel_block_names2id.jungle_tree): return true;
 	
-	if (vid == vdb.voxel_types.wood_workbench): return true;
-	if (vid == vdb.voxel_types.stone_workbench): return true;
-	if (vid == vdb.voxel_types.furnace): return true;
-	if (vid == vdb.voxel_types.anvil): return true;
+	if (vid == vdb.voxel_block_names2id.wood_workbench): return true;
+	if (vid == vdb.voxel_block_names2id.stone_workbench): return true;
+	if (vid == vdb.voxel_block_names2id.furnace): return true;
+	if (vid == vdb.voxel_block_names2id.anvil): return true;
 	
 	return false;
 
@@ -245,7 +269,7 @@ func _check_and_start_crafting(held_object):
 	if (vid == 0):
 		var vid_below = get_voxel_id_from_pos(pos - Vector3(0, 1, 0));
 		#print(" " + str(pos) + " vid below = " + str(vid_below))
-		#print(vdb.voxel_types.tree);
+		#print(vdb.voxel_block_names2id.tree);
 		# We can craft on top of tree trunks for now
 		if (_is_a_crafting_voxel(vid_below)):
 			var cg : Spatial = load("res://dynamic_objects/CraftingGrid.tscn").instance();
@@ -259,7 +283,7 @@ func _check_and_put_in_container(held_object):
 	var pos = held_object.global_transform.origin.floor();
 	var vid = get_voxel_id_from_pos(pos);
 	
-	if (vid == vdb.voxel_types.wooden_crate):
+	if (vid == vdb.voxel_block_names2id.wooden_crate):
 		var crate = find_crate_for_pos(pos);
 		#hmm; slow... we should add a method to get actually world objects
 
@@ -306,7 +330,7 @@ func get_voxel_id_from_pos(pos):
 
 func get_voxel_def_from_pos(pos):
 	var voxel_id = get_voxel_id_from_pos(pos);
-	return vdb.voxel_def[voxel_id];
+	return vdb.voxel_block_defs[voxel_id];
 
 
 func debug_axis(global_pos):
@@ -374,7 +398,7 @@ var _hit_traveld_distance  = [0.0, 0.0, 0.0];
 var _time_since_last_attack_voxel = 0.0;
 const _min_time_between_attack = 0.5;
 
-func _controller_hit_move_detection(controller):
+func _controller_hit_move_detection(controller : ARVRController):
 	
 	if (controller.is_hand):
 		_hit_min_speed = 1.0;
@@ -383,6 +407,12 @@ func _controller_hit_move_detection(controller):
 		_hit_min_speed = _hit_min_speed_default;
 		_hit_min_dist = _hit_min_dist_default;
 		
+		var voxel_def = get_voxel_def_from_pos(controller.global_transform.origin);
+		
+		if (!voxel_def.transparent):
+			controller.set_rumble(0.2);
+		else:
+			controller.set_rumble(0.0);
 	
 	_time_since_last_attack_voxel += _global_dt;
 	if (_time_since_last_attack_voxel < _min_time_between_attack): return;
@@ -407,7 +437,7 @@ func _controller_hit_move_detection(controller):
 				_time_since_last_attack_voxel = 0.0;
 			return;
 			
-		if (vdb.casual_mode && controller._button_pressed(vr.CONTROLLER_BUTTON.XA)):
+		if (!(vdb.game_mode == vdb.GAME_MODE.SPORTIVE) && controller._button_pressed(vr.CONTROLLER_BUTTON.XA)):
 			if (check_attack_voxel(point, null, controller, false)):
 				_time_since_last_attack_voxel = 0.0;
 			return;
@@ -422,7 +452,7 @@ func _controller_hit_move_detection(controller):
 func get_pointed_voxel(controller : ARVRController):
 	var origin = controller.get_palm_transform().origin;
 	var forward = -controller.get_palm_transform().basis.z.normalized();
-	var hit = _terrain_tool.raycast(origin, forward, 10)
+	var hit = _terrain_tool.raycast(origin, forward, 64)
 	return hit
 
 # since now the player is a child of the main world we
@@ -452,8 +482,8 @@ var _last_valid_position := Vector3(0, 0, 0);
 func _voxel_id_valid_for_head(id) -> bool:
 	if (id == 0): return true;
 	
-	var voxel_def = vdb.voxel_def[id];
-	if (voxel_def.transparent): return true;
+	var voxel_block_def = vdb.voxel_block_defs[id];
+	if (voxel_block_def.transparent): return true;
 
 	return false;
 
@@ -506,6 +536,12 @@ func oq_locomotion_stick_check_move(velocity, dt):
 	
 	#var head_pos = vr.vrCamera.global_transform.origin;
 	var move = voxel_box_mover.get_motion(_coll_check_pos, velocity * dt,  _get_head_collision_aabb(), terrain);
+	
+	if (vdb.game_mode == vdb.GAME_MODE.SPORTIVE):
+		move /= 8.0;
+	else:
+		move *= vdb.gameplay_settings.stick_locomotion_speed_multiplier;
+	
 	return move / dt;
 
 # this is the cached position to have the collision check work robustly
@@ -559,18 +595,103 @@ func _reorient_toolbelt():
 	var angle_y = vr.vrCamera.global_transform.basis.get_euler().y - PI * 0.5;
 	_player_toolbelt.global_transform.basis = Basis(Vector3(0.0, angle_y, 0.0));
 
+const _cm_color_green = Color(0,1,0,0.3);
+const _cm_color_red = Color(1,0,0,0.3);
+var _cm_ui = null;
+
+func _creative_mode_update_controller_world_interaction(controller, isAdd, show):
+	# just a quick solution for now; need to redo cleaner when reworking the creative mode
+	
+	var id = controller.controller_id;
+	var m : MeshInstance = $CreativeModeStuff.find_node("VoxelMarker%d"%id)
+	
+	if (!show):
+		m.visible = false;
+		return;
+	
+	if (isAdd):
+		m.mesh.surface_get_material(0).albedo_color =_cm_color_green;
+	else:
+		m.mesh.surface_get_material(0).albedo_color =_cm_color_red;
+
+	m.visible = true;
+	
+	var pv = get_pointed_voxel(controller);
+	if (pv):
+		if (isAdd):
+			m.global_transform.origin = pv.previous_position + Vector3(0.5, 0.5, 0.5);
+			if (controller._button_just_pressed(vr.CONTROLLER_BUTTON.INDEX_TRIGGER)):
+				add_voxel(pv.previous_position, _cm_ui.get_selected_voxel_id())
+		else:
+			m.global_transform.origin = pv.position + Vector3(0.5, 0.5, 0.5);
+			if (controller._button_just_pressed(vr.CONTROLLER_BUTTON.INDEX_TRIGGER)):
+				remove_voxel(pv.position)
+	else:
+		m.visible = false;
 
 
-func _process(dt):
+
+func _check_and_show_creative_mode_ui(controller : ARVRController):
+	var ui = $CreativeModeStuff/OQ_UI2D_CreativeModeMainUI;
+	if (controller._button_just_pressed(vr.CONTROLLER_BUTTON.GRIP_TRIGGER)):
+		ui.visible = true;
+		ui.global_transform.origin = controller.global_transform.origin;
+		ui.global_transform.basis = controller.global_transform.basis;
+		ui.global_transform.origin -= controller.get_palm_transform().basis.z * 0.5;
+
+	
+func _check_and_process_creative_mode(dt):
+	if (   (vr.button_pressed(vr.BUTTON.A) && vr.button_just_pressed(vr.BUTTON.B)) 
+		|| (vr.button_pressed(vr.BUTTON.B) && vr.button_just_pressed(vr.BUTTON.A))):
+			_creative_is_flying = !_creative_is_flying;
+			if(_creative_is_flying):
+				vr.vrOrigin.global_transform.origin.y += 1.0;
+				$CreativeModeStuff.visible = true;
+				_left_ui_raycast.visible = true;
+				_right_ui_raycast.visible = true;
+				_cm_ui = $CreativeModeStuff.find_node("CreativeModeMainUI", true, false);
+				if (!_cm_ui): vr.log_error("Could not find CreativeModeMainUI");
+				var ui = $CreativeModeStuff/OQ_UI2D_CreativeModeMainUI;
+				ui.visible = true;
+				ui.global_transform.origin = vr.rightController.global_transform.origin;
+				ui.global_transform.basis = vr.rightController.global_transform.basis;
+				ui.global_transform.origin -= vr.rightController.get_palm_transform().basis.z * 0.5;
+			else:
+				$CreativeModeStuff.visible = false;
+				_left_ui_raycast.visible = false;
+				_right_ui_raycast.visible = false;
+
+	if (_creative_is_flying):
+		feature_falling.active = false;
+		feature_falling.force_move_up = false;
+		
+		_check_and_show_creative_mode_ui(vr.leftController);
+		_check_and_show_creative_mode_ui(vr.rightController);
+
+		var _fly_up_down_speed = 2.0;
+
+		if (vr.button_pressed(vr.BUTTON.A)):
+			vr.vrOrigin.global_transform.origin.y -= _fly_up_down_speed * dt;
+		if (vr.button_pressed(vr.BUTTON.B)):
+			vr.vrOrigin.global_transform.origin.y += _fly_up_down_speed * dt;
+		
+		_creative_mode_update_controller_world_interaction(vr.leftController, false, !_left_ui_raycast.is_colliding);
+		_creative_mode_update_controller_world_interaction(vr.rightController, true, !_right_ui_raycast.is_colliding);
+
+
+func _physics_process(dt):
 	_global_dt = dt;
-	if (vr.switch_scene_in_progress): return;
+	if (vr.switch_scene_in_progress || terrain == null): 
+		return;
 	
 	vdb.global_statistics.total_playtime += dt;
 
 	if (vr.button_just_pressed(vr.BUTTON.ENTER)):
 		_save_all();
 		get_parent().remove_child(self); # we need to remove vdb.voxel_world_player 
+		terrain = null;
 		vr.switch_scene("res://levels/MainMenuRoom.tscn", 0.0, 0.0);
+		return;
 	
 	# foot position with a slight epsilon
 	_player_foot_position = vr.vrCamera.global_transform.origin - Vector3(0.0, vr.get_current_player_height(), 0.0);
@@ -585,18 +706,17 @@ func _process(dt):
 
 	_update_coll_check_pos();
 	check_player_in_valid_area(dt);
-	
-	
+
 	if (!vr.inVR):
 		#vr.show_dbg_info("_player_in_valid_area", str(_player_in_valid_area));
 		pass;
-	
+
 	# we track the time since climbing
 	if (featur_climbing.active_grab != null):
 		_time_since_climbing = 0.0;
 	else:
 		_time_since_climbing += dt;
-	
+
 	# for now deactivate falling and forcing up always when not moving or
 	# in an invalid area; maybe could also try again to use bigger radius for falling
 	# ...
@@ -609,12 +729,16 @@ func _process(dt):
 		if (_time_since_climbing > 0.5): # we want to auto-move up after climbing; arbitrary threshold here
 			feature_falling.force_move_up = false;
 
-#   temp Item creation
-#	if (vr.button_just_pressed(vr.BUTTON.A)):
-#		var obj = vdb.create_item_object_from_def(vdb.item_def[3]);
-#		add_child(obj);
-#		obj.global_transform = vr.rightController.global_transform;
-			
+
+	if (vdb.game_mode == vdb.GAME_MODE.CREATIVE):
+		# Note: this function will also disable feature_falling
+		_check_and_process_creative_mode(dt);
+		
+	if (!_creative_is_flying):
+		# arm menu for now only not in creative due to UI raycast conflicting
+		$HUD/ArmUserInterface._check_and_process_process(dt);
+
+
 	_controller_hit_move_detection(vr.rightController);
 	_controller_hit_move_detection(vr.leftController);
 	
@@ -703,7 +827,7 @@ func apply_save_dictionary(r : Dictionary):
 		
 	
 	for n in r.items_in_world:
-		print(n.def_name)
+		#print(n.def_name)
 		var def = vdb.get_def_from_name(n.def_name);
 		
 		if (def == null):
@@ -712,11 +836,11 @@ func apply_save_dictionary(r : Dictionary):
 		
 		#: filter out _voxel_def objects; this was a change in 0.3.2 to not store
 		#  floating blocks!!!
-		if (not vdb.is_item_def(def)): continue;
+		if (not vdb.is_item_definition(def)): continue;
 		
 		var obj = vdb.create_object_from_def(def);
 		if (obj):
-			print("Created: " + obj.name)
+			#print("Created: " + obj.name)
 			parent_world.add_child(obj);
 			obj.apply_save_dictionary(n);
 		else:
@@ -746,8 +870,8 @@ func hack_check_and_give_craft_guide():
 	
 	if (!has_guide):
 		vr.log_info("Creating new crafting guide");
-		#if !(_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.crafting_guide)):
-		var thing = vdb.create_object_from_def(vdb.name_to_def.crafting_guide);
+		#if !(_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.crafting_guide)):
+		var thing = vdb.create_object_from_def(vdb.names2blockORitem_def.crafting_guide);
 		parent_world.add_child(thing);
 		the_guide_in_world = thing;
 	
@@ -755,17 +879,20 @@ func hack_check_and_give_craft_guide():
 	if (the_guide_in_world):
 		the_guide_in_world.global_transform.origin = vr.vrCamera.global_transform.origin;
 		the_guide_in_world.global_transform.origin.y -= 0.5;
-		the_guide_in_world.global_transform.origin.z -= 1.0;
+		the_guide_in_world.global_transform.origin.z -= 0.9;
 
 
 func _apply_gameplay_settings():
-	locomotion_stick.turn_type = vdb.gameplay_settings.stick_locomotion_turn_mode;
-	locomotion_stick.click_turn_angle = vdb.gameplay_settings.stick_locomotion_click_turn_angle;
-	locomotion_stick.smooth_turn_speed = vdb.gameplay_settings.stick_locomotion_smooth_turn_speed;
-
+	if (locomotion_stick):
+		locomotion_stick.turn_type = vdb.gameplay_settings.stick_locomotion_turn_mode;
+		locomotion_stick.click_turn_angle = vdb.gameplay_settings.stick_locomotion_click_turn_angle;
+		locomotion_stick.smooth_turn_speed = vdb.gameplay_settings.stick_locomotion_smooth_turn_speed;
+	else:
+		vr.log_warning("in _apply_gameplay_settings(): no locomotion_stick")
 
 func gameplay_settings_changed_notification():
 	vr.log_info("VoxelGame: gameplay_settings_changed_notification()");
+	
 	_apply_gameplay_settings();
 	
 	
@@ -823,18 +950,91 @@ func set_player_parent_world(_parent):
 	if (parent_container_crates == null):
 		vr.log_error("VoxelWorldPlayer: no parent_container_crates!");
 	
+# this function is called by the Feature_StaticGrab on grab
+# it was introduced to allow climbing on transparent objects that do not have
+# a collision box created
+func oq_additional_static_grab_check(grab_area, controller):
+	var id = get_voxel_id_from_pos(controller.global_transform.origin);
+	
+	# for now every non-air voxel is grabbable
+	if (id > 0): return terrain;
+
+	return null;
+
+
+const _standard_text = """
+This is an early prototype. Things are unfinished and things 
+will change in future updates. If you have questions or 
+feedback join the  Voxel Works Discord (link is on the 
+SideQuest page).
+
+- Crafting works on tree trunks (and later crafting tables)
+- There is a crafting guide nearby
+- Only specific tools can mine some blocks
+- To open your inventory rotate your palm up
+- There is a settings menu on your arm
+- The game saves automatically when you quit
+""";
+
+var _tutorial_standard = """
+Welcome to %s %s standard mode %s
+
+Controls:
+	- move: left stick (or jog in place)
+	- rotoate: right stick
+	- mine: press A/X button when touching a block (or swing)
+	- build: grab a block and press A/X on an empty place (or swing)
+	- climb: grab button on blocks
+""" % [vdb.GAME_NAME, vdb.GAME_VERSION_STRING, _standard_text]
+
+var _tutorial_sportive = """
+Welcome to %s %s sportive mode %s
+
+Controls:
+	- move: jog in place (lift you knees while jogging)
+	- mine: swing your hand at a block
+	- build: grab a block and swing on an empty place
+	- climb: grab button on blocks
+""" % [vdb.GAME_NAME, vdb.GAME_VERSION_STRING, _standard_text]
+
+var _tutorial_creative = """
+Welcome to %s %s creative mode %s
+
+Controls:
+  - A+B: Activate Edit/Fly Mode
+  - A/B: Fly Up/Down
+  - Grab Button: block selection menu
+  - Right Index Trigger: build block
+  - Left Index Trigger:  delete block
+""" % [vdb.GAME_NAME, vdb.GAME_VERSION_STRING, _standard_text]
+
+func show_startup_tutorial():
+	var text = "";
+	var title = "";
+	
+	if (vdb.game_mode == vdb.GAME_MODE.STANDARD):
+		title = "Standard Mode";
+		text = _tutorial_standard;
+	if (vdb.game_mode == vdb.GAME_MODE.SPORTIVE):
+		title = "Sportive Mode";
+		text = _tutorial_sportive;
+	if (vdb.game_mode == vdb.GAME_MODE.CREATIVE):
+		title = "Creative Mode";
+		text = _tutorial_creative;
+
+	vr.show_notification(title, text)
+
 
 func move_player_into_terrain_after_load(_terrain):
 	terrain = _terrain;
 	
 	_apply_gameplay_settings();
 	
-	# this registers all the objects that will be saved in the save file
+	_creative_is_flying = false;
+	$CreativeModeStuff.visible = false;
 	
-	if (vdb.casual_mode):
-		$OQ_ARVROrigin/Locomotion_Stick.active = true;
-	else:
-		$OQ_ARVROrigin/Locomotion_Stick.active = false;
+	$OQ_ARVROrigin/OQ_LeftController/Feature_StaticGrab._additional_grab_checker = self
+	$OQ_ARVROrigin/OQ_RightController/Feature_StaticGrab._additional_grab_checker = self
 	
 	terrain.viewer_path = $OQ_ARVROrigin/OQ_ARVRCamera.get_path();
 	_terrain_tool = terrain.get_voxel_tool();
@@ -843,28 +1043,19 @@ func move_player_into_terrain_after_load(_terrain):
 	# world
 	if (parent_world.save_enabled): hack_check_and_give_craft_guide();
 	
+	show_startup_tutorial();
 	
 #	for i in range(0, 32):
-#		_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.toilet_paper);
-#
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stick);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonepick);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonehammer);
-#
-#	_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stone_workbench);
+#		_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.toilet_paper);
 
-	
-	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.wooden_crate);
-	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.stonepick);
-	#_player_inventory.add_item_or_block_to_inventory(vdb.name_to_def.gold_lump);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.wood);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stick);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonehammer);
+#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stone_workbench);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.wooden_crate);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.gold_lump);
 	
 
 	$OQ_ARVROrigin/Locomotion_WalkInPlace.move_checker = self;

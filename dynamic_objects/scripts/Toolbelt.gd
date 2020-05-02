@@ -31,7 +31,7 @@ func apply_save_dictionary(r : Dictionary):
 			vr.log_error("Could not load def " + item.def_name);
 			continue;
 		
-		if (not vdb.is_item_def(def)): continue;
+		if (not vdb.is_item_definition(def)): continue;
 		
 		var obj = vdb.create_object_from_def(def);
 		
@@ -55,7 +55,7 @@ func check_and_put_in_toolbelt(held_obj):
 	return false;
 
 
-func _process(_dt):
+func _physics_process(_dt):
 	global_transform.origin = vr.vrCamera.global_transform.origin;
 	global_transform.origin.y -= vr.get_current_player_height() * 0.5;
 

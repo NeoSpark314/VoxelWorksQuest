@@ -86,7 +86,7 @@ func trigger_left():
 	_display_page = (_display_page+_num_pages-1) % _num_pages;
 	update_page();
 
-func _process(_dt):
+func _physics_process(_dt):
 	if (_grabbing_controller != null):
 		if (_grabbing_controller._button_just_pressed(vr.CONTROLLER_BUTTON.XA)):
 			trigger_left();

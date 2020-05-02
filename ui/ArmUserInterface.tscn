@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DCanvas.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ui/ArmUserInterface.gd" type="Script" id=3]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=4]
+[ext_resource path="res://ui/GameplaySettings.tscn" type="PackedScene" id=5]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DLabel.tscn" type="PackedScene" id=6]
+
+[node name="ArmUserInterface" type="Spatial"]
+transform = Transform( 1, 0, 0, 0, -0.707107, -0.707107, 0, 0.707107, -0.707107, 0, 0, 0 )
+script = ExtResource( 3 )
+
+[node name="UITransform" type="Spatial" parent="."]
+transform = Transform( 5.76012e-08, 5.76012e-08, -0.5, 0.353553, -0.353553, 0, -0.353553, -0.353553, -8.14603e-08, -0.060182, -0.01, 0.02 )
+
+[node name="OQ_UILabel_JogDistance" parent="UITransform" instance=ExtResource( 6 )]
+transform = Transform( 1, 1.69407e-21, -1.42109e-14, 1.69407e-21, 1, -1.42109e-14, 7.10543e-15, 7.10543e-15, 1, 0, 0, 0 )
+margin = 16
+billboard = false
+depth_test = true
+resize_mode = 0
+font_size_multiplier = 1.0
+font_color = Color( 1, 1, 1, 1 )
+background_color = Color( 0, 0, 0, 0 )
+transparent = true
+
+[node name="OQ_UI2D_GameplaySettings" parent="UITransform" instance=ExtResource( 2 )]
+editor_live_update = false
+transparent = true
+
+[node name="GameplaySettings" parent="UITransform/OQ_UI2D_GameplaySettings" instance=ExtResource( 5 )]
+
+[node name="OQ_UI2D_SwitchPanelUI" parent="." instance=ExtResource( 2 )]
+transform = Transform( 5.76012e-08, 5.76012e-08, -0.5, 0.353553, -0.353553, 0, -0.353553, -0.353553, -8.14603e-08, -0.056, 0.125012, -0.0433764 )
+editor_live_update = false
+transparent = false
+
+[node name="Button_SwitchPanel" type="Button" parent="OQ_UI2D_SwitchPanelUI"]
+margin_right = 48.0
+margin_bottom = 48.0
+theme = ExtResource( 4 )
+text = ">"
+__meta__ = {
+"_edit_use_anchors_": false
+}

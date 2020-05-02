@@ -11,11 +11,11 @@ func _ready():
 	vr.scene_switch_root = self;
 
 	if (!vr.inVR): # for quick testing on desktop
-		vr.switch_scene("res://levels/MainWorld.tscn"); return;
+		#vr.switch_scene("res://levels/MainWorld.tscn"); return;
+		#vr.switch_scene("res://levels/MainMenuRoom.tscn"); return;
 		#vr.switch_scene("res://levels/DungeonInstance.tscn"); return;
 		pass;
 
 	# Always advertise Godot a bit in the beggining
 	if (vr.inVR): vr.switch_scene("res://levels/GodotSplash.tscn", 0.0, 0.0);
 	vr.switch_scene("res://levels/MainMenuRoom.tscn", 0.1, 5.0);
-

@@ -6,7 +6,7 @@
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.933333, 0.933333, 0.933333, 1 )
 
-[sub_resource type="BoxShape" id=5]
+[sub_resource type="BoxShape" id=2]
 extents = Vector3( 0.4, 0.4, 0.3 )
 
 [sub_resource type="Animation" id=3]
@@ -48,7 +48,7 @@ tracks/2/keys = {
 "values": [ Color( 0.933333, 0.933333, 0.933333, 1 ) ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=4]
 resource_name = "Follow"
 length = 2.0
 loop = true
@@ -101,8 +101,7 @@ tracks/3/keys = {
 "values": [ Vector3( 1, 1, 1 ) ]
 }
 
-[sub_resource type="Animation" id=4]
-resource_name = "Hurt"
+[sub_resource type="Animation" id=5]
 length = 0.2
 loop = true
 tracks/0/type = "value"
@@ -142,8 +141,7 @@ tracks/2/keys = {
 "values": [ Vector3( 0, 0, 0 ) ]
 }
 
-[sub_resource type="Animation" id=2]
-resource_name = "Idle"
+[sub_resource type="Animation" id=6]
 length = 2.0
 loop = true
 tracks/0/type = "value"
@@ -209,11 +207,11 @@ material/0 = SubResource( 1 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0 )
 
 [node name="CollisionShape" type="CollisionShape" parent="MeshTransformNode/Area"]
-shape = SubResource( 5 )
+shape = SubResource( 2 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 anims/Die = SubResource( 3 )
-anims/Follow = SubResource( 6 )
-anims/Hurt = SubResource( 4 )
-anims/Idle = SubResource( 2 )
+anims/Follow = SubResource( 4 )
+anims/Hurt = SubResource( 5 )
+anims/Idle = SubResource( 6 )
 [connection signal="area_entered" from="MeshTransformNode/Area" to="." method="_on_Area_area_entered"]

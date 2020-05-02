@@ -82,7 +82,7 @@ func _get_special_objects_voxel_def(px, py, pz):
 	var dz = 10;
 	var dy = 32;
 	
-	var wall = vdb.voxel_types.temp_nonminable_stone_brick;
+	var wall = vdb.voxel_block_names2id.temp_nonminable_stone_brick;
 	
 	var tower_aabb = AABB(Vector3(pos_x, pos_y, pos_z), Vector3(dx, dy, dz));
 	var voxel_pos = Vector3(px, py, pz);
@@ -97,7 +97,7 @@ func _get_special_objects_voxel_def(px, py, pz):
 	if (tx == 0 || tz == 0 || tx == dx || tz == dz):
 		
 		#door
-		if (tz == 0 && tx == dx/2 && ty > 0 && ty < 3): return vdb.voxel_types.air;
+		if (tz == 0 && tx == dx/2 && ty > 0 && ty < 3): return vdb.voxel_block_names2id.air;
 		
 		return wall;
 		
@@ -120,10 +120,10 @@ func _get_special_objects_voxel_def(px, py, pz):
 		
 		# spawn some treasure
 		if (tx == dx/2 && tz == dz/2 && ty < dy - floor_height + 3):
-			return vdb.voxel_types.gold_block;
+			return vdb.voxel_block_names2id.gold_block;
 	
 
-	return vdb.voxel_types.air;
+	return vdb.voxel_block_names2id.air;
 
 
 # not sure if this is always the case; will be checked below
@@ -216,12 +216,12 @@ func get_voxel_type_for_height(px, py, pz, height, rng : RandomNumberGenerator):
 	
 	# world can't get lower then this
 	if (py < -64):
-		return vdb.voxel_types.bedrock;
+		return vdb.voxel_block_names2id.bedrock;
 		
 	if (py >= cloud_height):
 		if (py == cloud_height):
 			var iscloud = cave_noise.get_noise_2d(px/3, pz/7);
-			if (iscloud > 0.4): return vdb.voxel_types.cloud;
+			if (iscloud > 0.4): return vdb.voxel_block_names2id.cloud;
 		return 0;
 		
 	# In the future we want sth. more connected here; perlin noise is not a good choice
@@ -253,37 +253,37 @@ func get_voxel_type_for_height(px, py, pz, height, rng : RandomNumberGenerator):
 		if (ore_value > 0.2): 
 			var p = rng.randf() / prop_mult;
 			if (p < coal_prop):
-				return vdb.voxel_types.stone_with_coal;
+				return vdb.voxel_block_names2id.stone_with_coal;
 			elif (p < iron_prop):
-				return vdb.voxel_types.stone_with_iron;
+				return vdb.voxel_block_names2id.stone_with_iron;
 			elif (p < gold_prop):
-				return vdb.voxel_types.stone_with_gold;
+				return vdb.voxel_block_names2id.stone_with_gold;
 		
-		return vdb.voxel_types.stone;
+		return vdb.voxel_block_names2id.stone;
 	elif (py <= height):
 		var inf = surface_influence.get_noise_3d(px*1.1, py*1.2, pz*0.9);
 		if (py < -1):
 			if (inf < -0.3):
-				return vdb.voxel_types.sand;
+				return vdb.voxel_block_names2id.sand;
 			elif (inf > 0.5):
-				return vdb.voxel_types.dirt;
+				return vdb.voxel_block_names2id.dirt;
 			else:
-				return vdb.voxel_types.grass;
+				return vdb.voxel_block_names2id.grass;
 
 		if (py >= 12 + inf * 4):
-				return vdb.voxel_types.snowstone;
+				return vdb.voxel_block_names2id.snowstone;
 				
 		if (py >= 5):
 			if (inf < (py - 6)/4):
-				return vdb.voxel_types.stone;
+				return vdb.voxel_block_names2id.stone;
 				
 
 		if (inf < -0.2):
-			return vdb.voxel_types.sand;
+			return vdb.voxel_block_names2id.sand;
 		elif (inf > 0.6):
-			return vdb.voxel_types.dirt;
+			return vdb.voxel_block_names2id.dirt;
 		
-		return vdb.voxel_types.grass;
+		return vdb.voxel_block_names2id.grass;
 		
 	# nothing
 	return 0;
@@ -300,7 +300,7 @@ func validate_position(buffer, x, y, z):
 			
 			
 func grow_vegetation(buffer, x, y, z, rng : RandomNumberGenerator):
-	#buffer.set_voxel(vdb.voxel_types.fence_full_NS, x, y+1, z, 0);
+	#buffer.set_voxel(vdb.voxel_block_names2id.fence_full_NS, x, y+1, z, 0);
 	
 	var num = rng.randi_range(1,7)
 	
@@ -313,19 +313,19 @@ func grow_vegetation(buffer, x, y, z, rng : RandomNumberGenerator):
 	else:
 		ggg = "plant_flower_dandelion_white";
 	
-	buffer.set_voxel(vdb.voxel_types[ggg], x, y+1, z, 0);
+	buffer.set_voxel(vdb.voxel_block_names2id[ggg], x, y+1, z, 0);
 
 func grow_tree(buffer, x, y, z, rng : RandomNumberGenerator):
-	var trunk_type = vdb.voxel_types.tree;
-	var leaves_type = vdb.voxel_types.leaves;
+	var trunk_type = vdb.voxel_block_names2id.tree;
+	var leaves_type = vdb.voxel_block_names2id.leaves;
 	var height = 3 + rng.randi_range(0, 1);
 	
 	# for now tree type is based on noise
 	var tree_type_inf = cave_noise.get_noise_2d(x/4, y/4);
 	
 	if (tree_type_inf < 0.0):
-		trunk_type = vdb.voxel_types.aspen_tree;
-		leaves_type = vdb.voxel_types.aspen_leaves;
+		trunk_type = vdb.voxel_block_names2id.aspen_tree;
+		leaves_type = vdb.voxel_block_names2id.aspen_leaves;
 		height += 1;
 	
 	
@@ -415,7 +415,7 @@ func emerge_block(buffer : VoxelBuffer, origin : Vector3, lod : int) -> void:
 				if (height > 9): continue;
 				if (vegetation_rng.randf() > 0.05): continue;
 				var surf = surface_type[x + z * resX];
-				if ((surf == vdb.voxel_types.grass || surf == vdb.voxel_types.dirt)):
+				if ((surf == vdb.voxel_block_names2id.grass || surf == vdb.voxel_block_names2id.dirt)):
 					grow_vegetation(buffer, x, height, z, vegetation_rng);
 				
 
@@ -448,7 +448,7 @@ func emerge_block(buffer : VoxelBuffer, origin : Vector3, lod : int) -> void:
 				
 				var surf = surface_type[x + z * resX];
 				
-				if ((surf == vdb.voxel_types.grass || surf == vdb.voxel_types.dirt)):
+				if ((surf == vdb.voxel_block_names2id.grass || surf == vdb.voxel_block_names2id.dirt)):
 					grow_tree(buffer, x, height, z, rng);
 					_last_tree_x = x;
 					_last_tree_z = z;

@@ -105,6 +105,15 @@ func get_grab_transform() -> Transform:
 	#fallback if we don't have any information yet
 	return global_transform;
 
+func get_ui_transform() -> Transform:
+	if (is_hand && _hand_model):
+		return _hand_model.ui_marker.global_transform;
+	elif (!is_hand && _controller_model):
+		return _controller_model.ui_marker.global_transform;
+
+	#fallback if we don't have any information yet
+	return global_transform;
+
 
 # this is the logic for controller/hand model switching
 # at the moment it is not configurable from the outside
@@ -235,7 +244,7 @@ func _update_buttons_and_sticks():
 
 var first_time = true;
 
-func _process(_dt):
+func _physics_process(_dt):
 	
 	#vr.show_dbg_info(str(controller_id), str(_buttons_pressed));
 

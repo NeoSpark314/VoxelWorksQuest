@@ -17,6 +17,8 @@ onready var movement_vignette_rect = $MovementVignette_ColorRect;
 export(vr.AXIS) var move_left_right = vr.AXIS.LEFT_JOYSTICK_X;
 export(vr.AXIS) var move_forward_back = vr.AXIS.LEFT_JOYSTICK_Y;
 
+enum MovementOrientation { HEAD, HAND_LEFT, HAND_RIGHT }
+export(MovementOrientation) var movement_orientation := MovementOrientation.HEAD
 
 export(vr.LocomotionStickTurnType) var turn_type = vr.LocomotionStickTurnType.CLICK
 export var smooth_turn_speed := 90.0;
@@ -65,15 +67,29 @@ func move(dt):
 		
 	if (enable_vignette) : movement_vignette_rect.visible = true;
 		
-	var view_dir = -vr.vrCamera.global_transform.basis.z;
-	var strafe_dir = vr.vrCamera.global_transform.basis.x;
+	var view_dir: Vector3
+	var strafe_dir: Vector3
+	
+	match movement_orientation:
+		MovementOrientation.HEAD:
+			view_dir = -vr.vrCamera.global_transform.basis.z;
+			strafe_dir = vr.vrCamera.global_transform.basis.x;
+		MovementOrientation.HAND_RIGHT:
+			view_dir = -vr.rightController.global_transform.basis.z;
+			strafe_dir = vr.rightController.global_transform.basis.x;
+		MovementOrientation.HAND_LEFT:
+			view_dir = -vr.leftController.global_transform.basis.z;
+			strafe_dir = vr.leftController.global_transform.basis.x;
 	
 	view_dir.y = 0.0;
 	strafe_dir.y = 0.0;
 	view_dir = view_dir.normalized();
 	strafe_dir = strafe_dir.normalized();
+	
+	#var stick_speed 
 
-	var move = Vector2(dx, dy).normalized() * move_speed;
+	#var move = Vector2(dx, dy).normalized() * move_speed;
+	var move = Vector2(dx, dy) * move_speed;
 	
 	var actual_velocity = (view_dir * move.y + strafe_dir * move.x);
 	

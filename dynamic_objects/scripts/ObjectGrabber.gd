@@ -43,6 +43,8 @@ func start_grab(area : Area):
 	if (p.has_method("can_grab") && p.can_grab()):
 		held_object = p.get_grab_object(controller);
 		_reparent_object_to_world(held_object);
+		
+		controller.visible = false;
 		return true;
 	
 	return false;
@@ -52,13 +54,14 @@ func delete_held_object():
 		held_object.get_parent().remove_child(held_object);
 		held_object.queue_free();
 		held_object = null;
+		controller.visible = true;
 
 func release_grab():
-	print(held_object);
 	emit_signal("grab_released_held_object", held_object);
 	if (held_object.has_method("release_grab")):
 		held_object.release_grab(controller);
 	held_object = null;
+	controller.visible = true;
 	
 func update_grab():
 	if (held_object == null):
@@ -73,18 +76,12 @@ func update_grab():
 			release_grab();
 
 
-func do_process(dt):
+# position update needs to be in the process
+func _process(dt):
 	if (held_object):
 		held_object.global_transform = controller.get_grab_transform();
 		pass;
-	
-	update_grab()
 
-func _process(dt):
-	do_process(dt);
-	pass
-
-
+# key presses in the _physics_process
 func _physics_process(dt):
-	#do_process(dt);
-	pass;
+	update_grab()

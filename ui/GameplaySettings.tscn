@@ -12,7 +12,26 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="General" type="Panel" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Button_ToolbeltRequireButton" type="CheckBox" parent="General"]
+margin_left = 4.0
+margin_top = 5.0
+margin_right = 333.0
+margin_bottom = 46.0
+text = "Toolbelt Require Button (X/A)"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Sportive" type="Panel" parent="."]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -51,41 +70,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Label_SmoothTurnSpeed" type="Label" parent="Standard"]
-visible = false
-margin_left = 12.0
-margin_top = 77.0
-margin_right = 172.0
-margin_bottom = 125.0
-text = "Smooth Turn Speed:"
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Label_ClickTurnAngle" type="Label" parent="Standard"]
-margin_left = 12.0
-margin_top = 77.0
-margin_right = 172.0
-margin_bottom = 125.0
-text = "Click Turn Angle:"
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Label_TurnValue" type="Label" parent="Standard"]
-margin_left = 332.0
-margin_top = 77.0
-margin_right = 444.0
-margin_bottom = 125.0
-text = "180"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [node name="OptionButton_TurnMode" type="OptionButton" parent="Standard"]
 margin_left = 188.0
 margin_top = 13.0
@@ -95,25 +79,112 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Button_TurnPlus" type="Button" parent="Standard"]
-margin_left = 444.0
+[node name="TurnSettings" type="Control" parent="Standard"]
+margin_left = 12.0
 margin_top = 77.0
-margin_right = 488.0
-margin_bottom = 122.0
+margin_right = 492.0
+margin_bottom = 125.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_SmoothTurnSpeed" type="Label" parent="Standard/TurnSettings"]
+visible = false
+margin_right = 260.0
+margin_bottom = 48.0
+text = "Smooth Turn Speed:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_ClickTurnAngle" type="Label" parent="Standard/TurnSettings"]
+margin_right = 217.0
+margin_bottom = 48.0
+text = "Click Turn Angle:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_TurnValue" type="Label" parent="Standard/TurnSettings"]
+margin_left = 320.0
+margin_right = 432.0
+margin_bottom = 48.0
+text = "180"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_TurnPlus" type="Button" parent="Standard/TurnSettings"]
+margin_left = 432.0
+margin_right = 476.0
+margin_bottom = 45.0
 text = "+"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Button_TurnMinus" type="Button" parent="Standard"]
-margin_left = 284.0
-margin_top = 77.0
-margin_right = 328.0
-margin_bottom = 122.0
+[node name="Button_TurnMinus" type="Button" parent="Standard/TurnSettings"]
+margin_left = 272.0
+margin_right = 316.0
+margin_bottom = 45.0
 text = "-"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="SpeedSettings" type="Control" parent="Standard"]
+margin_left = 12.0
+margin_top = 141.0
+margin_right = 492.0
+margin_bottom = 189.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_MoveSpeedMultiplier" type="Label" parent="Standard/SpeedSettings"]
+margin_right = 217.0
+margin_bottom = 48.0
+text = "Speed Multiplier:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_SpeedValue" type="Label" parent="Standard/SpeedSettings"]
+margin_left = 320.0
+margin_right = 432.0
+margin_bottom = 48.0
+text = "1.0"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_SpeedPlus" type="Button" parent="Standard/SpeedSettings"]
+margin_left = 432.0
+margin_right = 476.0
+margin_bottom = 45.0
+text = "+"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_SpeedMinus" type="Button" parent="Standard/SpeedSettings"]
+margin_left = 272.0
+margin_right = 316.0
+margin_bottom = 45.0
+text = "-"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="toggled" from="General/Button_ToolbeltRequireButton" to="." method="_on_Button_ToolbeltRequireButton_toggled"]
 [connection signal="item_selected" from="Standard/OptionButton_TurnMode" to="." method="_on_OptionButton_TurnMode_item_selected"]
-[connection signal="pressed" from="Standard/Button_TurnPlus" to="." method="_on_Button_TurnPlus_pressed"]
-[connection signal="pressed" from="Standard/Button_TurnMinus" to="." method="_on_Button_TurnMinus_pressed"]
+[connection signal="pressed" from="Standard/TurnSettings/Button_TurnPlus" to="." method="_on_Button_TurnPlus_pressed"]
+[connection signal="pressed" from="Standard/TurnSettings/Button_TurnMinus" to="." method="_on_Button_TurnMinus_pressed"]
+[connection signal="pressed" from="Standard/SpeedSettings/Button_SpeedPlus" to="." method="_on_Button_SpeedPlus_pressed"]
+[connection signal="pressed" from="Standard/SpeedSettings/Button_SpeedMinus" to="." method="_on_Button_SpeedMinus_pressed"]

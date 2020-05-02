@@ -25,6 +25,6 @@ func _ready():
 	]
 	
 	for i in range(0, pos.size(), 2):
-		var v = vdb.create_voxelblock_object_from_def(vdb.voxel_def[pos[i]]);
+		var v = vdb.create_voxelblock_object_from_def(vdb.voxel_block_defs[pos[i]]);
 		$Icon.add_child(v);
 		v.transform.origin = pos[i+1]*0.125;

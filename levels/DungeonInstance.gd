@@ -26,7 +26,7 @@ func _ready():
 	vdb._set_player_position(dungeon_generator.start_position);
 
 
-func _process(_dt):
+func _physics_process(_dt):
 	#vr.show_dbg_info("camera", str(vr.vrCamera.global_transform.basis.z));
 	
 	var mb = dungeon_generator.block2_fromVec3(vr.vrCamera.global_transform.origin, dungeon_generator.template_size);

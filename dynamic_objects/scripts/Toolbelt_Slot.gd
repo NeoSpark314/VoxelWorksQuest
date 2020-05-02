@@ -15,6 +15,10 @@ func get_slot_object():
 
 
 func get_grab_object(controller):
+	if (vdb.gameplay_settings.toolbelt_require_second_button):
+		if (!controller._button_pressed(vr.CONTROLLER_BUTTON.XA)):
+			return null;
+	
 	return get_slot_object();
 	
 func check_and_put_in_toolbelt_slot(held_obj):

@@ -31,7 +31,7 @@ func _fill_block_translation_table():
 	for i in range(0, _magica_to_voxelid.size()):
 		_magica_to_voxelid[i] = 1;
 		
-	_magica_to_voxelid[1] = vdb.voxel_types.stone_brick;
+	_magica_to_voxelid[1] = vdb.voxel_block_names2id.stone_brick;
 
 
 const D_UP = 0;

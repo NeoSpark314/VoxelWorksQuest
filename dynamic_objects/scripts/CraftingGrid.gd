@@ -25,9 +25,9 @@ const COLOR_valid_recipe = Color(0,0.521569,0,0.392157);
 const COLOR_invalid_recipe = Color(0.521569,0,1,0.392157);
 
 func initialize_crafting_grid(vid):
-	crafting_grid_voxel_def = vdb.voxel_def[vid];
+	crafting_grid_voxel_def = vdb.voxel_block_defs[vid];
 	
-	if (vid == vdb.voxel_types.furnace):
+	if (vid == vdb.voxel_block_names2id.furnace):
 		is_furnace = true;
 		
 	
@@ -99,7 +99,7 @@ func perform_craft(global_pos, controller, held_object, is_physical):
 	if (is_furnace): return;
 	
 	if (crafting_grid_voxel_def == null):
-		vr.log_error("Invalid voxel_def in CraftingGrid.gd");
+		vr.log_error("Invalid voxel_block_defs in CraftingGrid.gd");
 		return false;
 	
 	# manual check here...

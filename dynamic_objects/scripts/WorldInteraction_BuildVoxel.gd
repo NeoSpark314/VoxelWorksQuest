@@ -5,13 +5,13 @@ var _voxel_def = null;
 
 var _voxel_object = null;
 
-func initialize(voxel_position, hit_position, voxel_def):
+func initialize(voxel_position, hit_position, voxel_block_defs):
 	translation = voxel_position;
 	_global_hit_position = hit_position;
-	_voxel_def = voxel_def;
+	_voxel_def = voxel_block_defs;
 	
 	# we want only the mesh here; a full object would be grabbable
-	_voxel_object = vdb.create_voxel_mesh_from_def(voxel_def);
+	_voxel_object = vdb.create_voxel_mesh_from_def(voxel_block_defs);
 	
 	# we need to reset the mesh here as it has the moved values from the
 	# object creation still

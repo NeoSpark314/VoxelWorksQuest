@@ -1108,18 +1108,19 @@ scene={
 "animation/storage": false,
 "external_files/store_in_subdir": false,
 "materials/keep_on_reimport": true,
-"materials/location": 1,
+"materials/location": 0,
 "materials/storage": 1,
 "meshes/compress": true,
 "meshes/ensure_tangents": true,
 "meshes/light_baking": 0,
 "meshes/lightmap_texel_size": 0.1,
-"meshes/storage": 1,
+"meshes/storage": 0,
 "nodes/custom_script": "",
 "nodes/root_name": "Scene Root",
 "nodes/root_scale": 1.0,
 "nodes/root_type": "Spatial",
-"nodes/storage": 0
+"nodes/storage": 0,
+"skins/use_named_skins": true
 }
 
 [input]

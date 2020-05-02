@@ -70,13 +70,13 @@ func get_grab_object(controller):
 	update_active_item();
 
 	var ret = null;
-	if (vdb.is_voxel_def(def)):
+	if (vdb.is_voxel_block_definition(def)):
 		var voxel_object = vdb.create_voxelblock_object_from_def(def);
 		# the newly spawned voxel object needs to live somewhere
 		# maybe not good to always add it to the parent here but let's see
 		get_parent().add_child(voxel_object);
 		return voxel_object;
-	if (vdb.is_item_def(def)):
+	if (vdb.is_item_definition(def)):
 		var item_object = vdb.create_item_object_from_def(def);
 		get_parent().add_child(item_object);
 		return item_object;
@@ -109,7 +109,7 @@ func check_and_put_in_inventory(obj):
 	return false;
 
 
-func add_item_or_block_to_inventory(voxel_def):
+func add_item_or_block_to_inventory(voxel_block_defs):
 	var empty_space = -1;
 	
 	var sound_position = vr.vrCamera.global_transform.origin - vr.vrCamera.global_transform.basis.z; # behind the player
@@ -124,9 +124,9 @@ func add_item_or_block_to_inventory(voxel_def):
 		
 		# check if the same voxel is already there
 		if (ii != null):
-			if (ii.name == voxel_def.name && ii_count < ii.stackability):
+			if (ii.name == voxel_block_defs.name && ii_count < ii.stackability):
 				_inventory[i][1] = _inventory[i][1] + 1;
-				#vr.log_info("Increased stack size of " + voxel_def.name + " to " + str(_inventory[i][1]));
+				#vr.log_info("Increased stack size of " + voxel_block_defs.name + " to " + str(_inventory[i][1]));
 				update_active_item();
 				vdb._play_sfx(vdb.sfx_put_in_inventory, sound_position);
 				return true;
@@ -136,9 +136,9 @@ func add_item_or_block_to_inventory(voxel_def):
 		vdb._play_sfx(vdb.sfx_no_space_in_inventory, sound_position);
 		return false; # no space in inventory
 		
-	_inventory[empty_space][0] = voxel_def;
+	_inventory[empty_space][0] = voxel_block_defs;
 	_inventory[empty_space][1] = 1; # first item in the inventory
-	#vr.log_info("Putting " + voxel_def.name + " in the inventory.");
+	#vr.log_info("Putting " + voxel_block_defs.name + " in the inventory.");
 	
 	update_active_item();
 	vdb._play_sfx(vdb.sfx_put_in_inventory, sound_position);
@@ -166,7 +166,7 @@ func update_active_item():
 	if (_inventory[_active_inventory_slot][1] <= 0): return;
 	
 	if (item != null):
-		if (vdb.is_voxel_def(item)):
+		if (vdb.is_voxel_block_definition(item)):
 			var mesh = vdb.create_voxel_mesh_from_def(item); #item.mesh_instance.duplicate();
 			if (mesh):
 				mesh.scale = Vector3(0.6,0.6,0.6);
@@ -174,7 +174,7 @@ func update_active_item():
 				_show.add_child(mesh);
 			else:
 				vr.log_warning("Cannot create mesh in Inventory.update_active_item() from " + item.name);
-		elif (vdb.is_item_def(item)):
+		elif (vdb.is_item_definition(item)):
 			# Carefull here; I had a item dupe issue when this was a real item
 			var mesh = vdb._create_item_mesh_from_def(item); #item.cached_object_instance.duplicate();
 			if (mesh):
@@ -221,8 +221,8 @@ func _check_hide_inventory_gesture(controller : ARVRController):
 	if (controller.get_palm_transform().basis.x.y < 0.3):
 		return true;
 
-func _process(_dt):
-	
+# key presses need to be currenlty in the physics_process
+func _physics_process(_dt):
 	if (!vr.inVR):
 		if Input.is_key_pressed(KEY_I):
 			_active_inventory_controller = vr.leftController;
@@ -230,7 +230,6 @@ func _process(_dt):
 			_active_inventory_controller = null;
 			hide_inventory();
 
-	
 	if (_active_inventory_controller == null):
 		if (_check_display_inventory_gesture(vr.leftController)):
 			_active_inventory_controller = vr.leftController;
@@ -239,7 +238,12 @@ func _process(_dt):
 	elif (vr.inVR && _check_hide_inventory_gesture(_active_inventory_controller)):
 		_active_inventory_controller = null;
 		hide_inventory();
-	
+		
+	if (_active_inventory_controller):
+		show_inventory();
+
+
+func _process(_dt):
 	if (_active_inventory_controller):
 		
 		var palm_transform = _active_inventory_controller.get_palm_transform();
@@ -259,7 +263,6 @@ func _process(_dt):
 		at.y = global_transform.origin.y;
 		
 		global_transform = global_transform.looking_at(at, Vector3(0,1,0));
-		show_inventory();
 	
 	#vr.show_dbg_info("controller", "Left Controller basis.x" + str(vr.leftController.global_transform.basis.x.y));
 	

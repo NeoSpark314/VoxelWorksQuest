@@ -8,23 +8,14 @@ onready var statistics_text_label = $StatisticsTextLabel;
 var savegame_item_list : ItemList = null;
 
 const info_text ="""%s %s
+Welcome!
 
 In this prototype you can explore an infinite voxel world.
 It is an early prototype and all mechanics are just experimental. 
 Things will change in future updates.
 
-How to play:
-   - inventory: rotate your palm up (button/pinch to change slot)
-   - craft: on top of tree trunks for now
-   - grab things or climbing: use the grab button or a fist
-
-In Standard Mode:
-   - Stick to move/rotate
-   - Button press to mine/craft/build
-
-In Sportive Mode:
-   - move forward: jog in place
-   - mine/craft/build: large swing with your hand
+If you have questions or feedback join the Voxel Works Discord
+(link is on the sidequest page or on itch.io).
 
 <-- Gameplay Statistics                                       Start Game -->
 """ % [vdb.GAME_NAME, vdb.GAME_VERSION_STRING];
@@ -32,91 +23,26 @@ In Sportive Mode:
 # current changelog is always the first
 const changelog_text = [
 """Changelog for %s
- - Added craftable toilet paper
 
-more details at https://neospark314.itch.io/voxel-works-quest
+ - New Game Mode: Creative
+ - Option to load your own texture pack within the game
+ - Option to increase stick locomotion speed
+ - Small position adjustments now possible in sportive mode
+ - smaller toolbelt grab area and option to require button press
+   from the toolbelt (to avoid accidentally grabbing something)
+ - hide controller when objects are grabbed
+ - Added controller rumble when controller is inside a block
+ - Transparent blocks (like leaves) are now climbable
+ - Fixed orientation of right hand arm menu
+ - Crafting tables are now only breakable by hand not by tools
 
-<-- Start Game (look left)""" % [vdb.GAME_VERSION_STRING],
-"""Changelog for 0.3.7
- - Crate block to store items
- - Fixed issue that re-applied old changes to new worlds
- 
-
-more details at https://neospark314.itch.io/voxel-works-quest
-""",
-"""Changelog for 0.3.6
- - Multiple savegames with different seeds are now possible
- - Added wood hammer and steel hammer
- - Added reset crafting guide option
- - Added 2 basic flowers
- - Fixed mined blocks spawn wrong block if inventory is full
- - Fixed mining of coal_block and steel_block (requires hammer)
-
-Contributors (Thanks!):
-  @BrudaSven (steel and wood hammer)
-  @SaltyBoi (anvil 3d model)
-
-more details at https://neospark314.itch.io/voxel-works-quest
-""",
-"""Changelog for 0.3.5
- - Fixed one issue for crashes
- - Fixed mining of leaves
- - Fixed getting stuck in leaves
- - Arm Menu with first game settings and coordinates
- - Toolbelt with 2 slots
- - Glass blocks (made from sand on furnace)
- - Stonehammer as new tool (required for anvil recipes)
- - Added Anvil as crafting area for metals
- - Steeltool recipes (pick, shovel, axe)
-
-more details at https://neospark314.itch.io/voxel-works-quest
-
-<-- Start Game (look left)""",
-"""Changelog for 0.3.4
- - added wood workbench and stone workbench
- - wooden tools need a wood workbench stone tools a 
-	  stone workbench
- - mining stone_with_coal now gives coal lumps (when using a pick)
- - added recipes for stone_bricks, sandstone and sandstone_bricks
- - added recipe for coal_block
- - reduced height of collision box; auto jump should now also 
-	  trigger for smaller people
- - footstep sound is now also played with stick locomotion
- - first version of furnace; no fuel yet; only recipe is steel_ingot
- - can build over plants now
-
-more details at https://neospark314.itch.io/voxel-works-quest
-
-<-- Start Game (look left)""" ,
-"""Changelog for 0.3.3
-   - Fixed crash with stick locomotion + jog in place
-
-Changelog for 0.3.2
-   - Optional stanard mode for stick locomotion and button mining
-   - Added crafting guide v0.1.0
-   - Default stack size increased to 64 blocks
-   - ...
-There are many more changes: for the full pelase check the
-change-log at https://neospark314.itch.io/voxel-works-quest
-
-
-<-- Start Game (look left)""",
-"""Changelog for 0.3.1
-
-   - Doubled the in game Jogging speed 
-   - Increased step detection sensitivity
-   - Autojump now only triggers when jogging. 
-   - Added a reset start position option in main menu
-   - Fixed: falling when head was inside voxel
-   - Fixed: item duplication bug with closed inventory
-
-<-- Start Game (look left)"""
+<-- Start Game (look left)""" % [vdb.GAME_VERSION_STRING]
 ]
 
 
 func create_some_blocks():
 #	var pos = [
-#	vdb.voxel_types.dirt, Vector3(0,0,0),
+#	vdb.voxel_block_names2id.dirt, Vector3(0,0,0),
 #	1, Vector3(0,1,0),
 #	1, Vector3(1,0,0),
 #	1, Vector3(1,0,1),
@@ -124,7 +50,7 @@ func create_some_blocks():
 #	]
 #
 #	for i in range(0, pos.size(), 2):
-#		var v = vdb.create_voxelblock_object_from_def(vdb.voxel_def[pos[i]]);
+#		var v = vdb.create_voxelblock_object_from_def(vdb.voxel_block_defs[pos[i]]);
 #		v.scale = Vector3(8,8,8);
 #		add_child(v);
 #		v.transform.origin = pos[i+1];
@@ -138,11 +64,11 @@ func create_some_blocks():
 				
 				if (x == -size || x == size || z == -size || z == size): #border
 					if (y == 0):
-						v = vdb.create_voxelblock_object_from_def(vdb.name_to_def.stone);
+						v = vdb.create_voxelblock_object_from_def(vdb.names2blockORitem_def.stone);
 					elif (x == z || x == -z):
-						v = vdb.create_voxelblock_object_from_def(vdb.name_to_def.stone);
+						v = vdb.create_voxelblock_object_from_def(vdb.names2blockORitem_def.stone);
 				elif (y == 0): # ground
-					v = vdb.create_voxelblock_object_from_def(vdb.name_to_def.grass);
+					v = vdb.create_voxelblock_object_from_def(vdb.names2blockORitem_def.grass);
 				
 				if (v):
 					v.scale = Vector3(8,8,8);
@@ -150,7 +76,7 @@ func create_some_blocks():
 					v.transform.origin = Vector3(x, y-0.5, z);
 
 
-func _process(delta):
+func _physics_process(delta):
 #	if (vr.button_just_released(vr.BUTTON.A) ||
 #		vr.button_just_released(vr.BUTTON.B) ||
 #		vr.button_just_released(vr.BUTTON.X) ||
@@ -214,10 +140,21 @@ func _create_savegame_list():
 		
 		#entry_text += " (" + s.save_date + ")";
 		
-		if (s.casual_mode):
-			entry_text += " [Standard]";
+
+		if (s.has("casual_mode")): # legacy loading before introducing game mode
+			if (s.casual_mode):
+				entry_text += " [Standard]";
+			else:
+				entry_text += " [Sportive]";
 		else:
-			entry_text += " [Sportive]";
+			if (s.game_mode == vdb.GAME_MODE.STANDARD):
+				entry_text += " [Standard]";
+			elif (s.game_mode == vdb.GAME_MODE.SPORTIVE):
+					entry_text += " [Sportive]";
+			elif (s.game_mode == vdb.GAME_MODE.CREATIVE):
+				entry_text += " [Creative]";
+			else:
+				entry_text += " [UnknownMode]";
 		
 		savegame_item_list.add_item(entry_text);
 		
@@ -227,30 +164,38 @@ func _create_savegame_list():
 
 var load_game_panel : Panel = null;
 var new_game_panel : Panel = null;
+var settings_panel : Panel = null;
 
 var world_name_text_edit : TextEdit = null;
 var world_seed_spin_box : SpinBox = null;
 var world_generator_option_button : OptionButton = null;
-var sportive_mode_check_box : CheckBox = null;
+var game_mode_option_button : OptionButton = null;
 
 func _create_new_game_menu():
-	load_game_panel =  $MainMenu.find_node("LoadGamePanel", true, false);
-	new_game_panel =  $MainMenu.find_node("NewGamePanel", true, false);
+	load_game_panel = $MainMenu.find_node("Load Game", true, false);
+	new_game_panel = $MainMenu.find_node("New Game", true, false);
+	settings_panel = $MainMenu.find_node("Settings", true, false);
 	
 	
-	load_game_panel.visible = true;
-	new_game_panel.visible = false;
+	#load_game_panel.visible = true;
+	#new_game_panel.visible = false;
 
 	
 	world_name_text_edit = $MainMenu.find_node("TextEdit_WorldName", true, false);
 	world_seed_spin_box = $MainMenu.find_node("SpinBox_WorldSeed", true, false);
 	world_generator_option_button = $MainMenu.find_node("OptionButton_WorldGenerator", true, false);
-	sportive_mode_check_box = $MainMenu.find_node("CheckBox_SportiveMode", true, false);
+	game_mode_option_button = $MainMenu.find_node("OptionButton_GameMode", true, false);
 
 	world_generator_option_button.add_item("TerrainGenerator_V1");
 
+	game_mode_option_button.add_item("Standard");
+	game_mode_option_button.add_item("Sportive");
+	game_mode_option_button.add_item("Creative");
 
 func _ready():
+	vr.leftController.set_rumble(0.0);
+	vr.rightController.set_rumble(0.0);
+	
 	_create_savegame_list();
 	
 	_create_new_game_menu();
@@ -261,6 +206,9 @@ func _ready():
 	
 	_setup_main_menu();
 	_setup_statistics();
+	
+	if (_check_required_permissions()):
+		_create_TextureSetList();
 
 
 func _start_game():
@@ -278,16 +226,6 @@ func _on_Button_LoadGame_pressed():
 	_start_game();
 
 
-func _on_Button_NewGame_pressed():
-	load_game_panel.visible = false;
-	new_game_panel.visible = true;
-
-
-func _on_Button_BackFromNewGame_pressed():
-	load_game_panel.visible = true;
-	new_game_panel.visible = false;
-
-
 func _on_Button_StartNewGame_pressed():
 	vdb.startup_settings.save_file_infix = vdb.persistence_get_next_free_save_filename_infix();
 	vdb.startup_settings.reset_start_position = false;
@@ -296,5 +234,107 @@ func _on_Button_StartNewGame_pressed():
 	vdb.startup_settings.generator_name = world_generator_option_button.get_item_text(world_generator_option_button.get_selected_id());
 	vdb.startup_settings.world_name = world_name_text_edit.text;
 	vdb.startup_settings.load_game = false;
-	vdb.startup_settings.casual_mode = !sportive_mode_check_box.pressed;
+	
+	#vdb.startup_settings.casual_mode = !sportive_mode_check_box.pressed;
+	vdb.startup_settings.game_mode = game_mode_option_button.get_selected_id();
+	
 	_start_game();
+
+
+
+var terrain_blocks_file_list = []
+
+
+func _on_TerrainBlockTextures_ItemList_item_selected(index):
+	var path : String = terrain_blocks_file_list[index]
+	
+	
+	var texture = null;
+	
+	if (path.begins_with("res://")):
+		texture = load(path);
+	else:
+		var image = Image.new();
+		var err = image.load(path);
+		
+		if (err != OK):
+			vr.log_error("Could not load file " + path);
+			return;
+		else:
+			vr.log_info("Loading texture from " + path);
+		texture = ImageTexture.new()
+		texture.create_from_image(image, 0)
+	
+	vdb.voxel_material.albedo_texture = texture
+	vdb.voxel_material_transparent.albedo_texture = texture
+
+func _create_TextureSetList():
+	terrain_blocks_file_list = ["res://data/terrain_blocks.png"]
+	var terrain_blocks_name_list = ["default"]
+
+	if (!_check_and_request_permission()):
+		return;
+		
+	
+	var path = "/sdcard/VoxelWorksQuest";
+	
+	if (!vr.inVR):
+		path = "src_data/test_device_data"
+
+	vr.log_info("Looking for textures in " + path)
+	
+	var dir = Directory.new()
+	dir.open(path)
+	dir.list_dir_begin()
+	var read = File.new();
+	
+	while true:
+		var file = dir.get_next()
+		if file == "":
+			break
+		elif not file.begins_with(".") and file.begins_with("terrain_blocks_"):
+			terrain_blocks_file_list.append(path + "/" + file);
+			terrain_blocks_name_list.append(file.replace("terrain_blocks_", "").replace(".png", ""))
+#		else:
+#			vr.log_info(str(file));
+
+	var terrain_block_textures_item_list : ItemList = $MainMenu.find_node("TerrainBlockTextures_ItemList", true, false);
+	terrain_block_textures_item_list.clear()
+
+	for s in terrain_blocks_name_list:
+		terrain_block_textures_item_list.add_item(s);
+		
+	#terrain_block_textures_item_list.select(0);
+
+
+func _on_Button_Settings_RefrehTexturesets_pressed():
+	_create_TextureSetList()
+
+
+const READ_PERMISSION = "android.permission.READ_EXTERNAL_STORAGE"
+
+
+func _check_required_permissions():
+	if (!vr.inVR): return true; # desktop is always allowed
+	
+	var permissions = OS.get_granted_permissions()
+	var read_storage_permission = vdb.is_in_array(permissions, READ_PERMISSION)
+	
+	vr.log_info(str(permissions));
+	
+	if !(read_storage_permission):
+		return false;
+
+	return true;
+
+func _check_and_request_permission():
+	vr.log_info("Checking permissions")
+
+	if !(_check_required_permissions()):
+		vr.log_info("Requesting permissions")
+		OS.request_permissions()
+		return false;
+	else:
+		return true;
+
+
