@@ -1,0 +1,730 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://ui/IngameMenu_MainUI.gd" type="Script" id=1]
+[ext_resource path="res://levels/MainMenuRoom_Border.stylebox" type="StyleBox" id=2]
+[ext_resource path="res://ui/styleboxflat_black.stylebox" type="StyleBox" id=3]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=4]
+[ext_resource path="res://ui/IngameMenu_MainUI_Online.gd" type="Script" id=5]
+[ext_resource path="res://ui/GameplaySettings.gd" type="Script" id=6]
+
+[node name="IngameMenu_MainUI" type="Control"]
+margin_right = 1024.0
+margin_bottom = 512.0
+theme = ExtResource( 4 )
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TabContainer" type="TabContainer" parent="."]
+margin_right = 1024.0
+margin_bottom = 512.0
+custom_styles/tab_fg = ExtResource( 2 )
+custom_styles/panel = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Game" type="Panel" parent="TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+
+[node name="Game_Status_Label" type="Label" parent="TabContainer/Game"]
+margin_left = 24.0
+margin_top = 391.0
+margin_right = 984.0
+margin_bottom = 439.0
+custom_styles/normal = ExtResource( 3 )
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Game_Info_Label" type="Label" parent="TabContainer/Game"]
+margin_left = 24.0
+margin_top = 87.0
+margin_right = 488.0
+margin_bottom = 247.0
+text = "Game Info:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Game_WorldName_Label" type="Label" parent="TabContainer/Game"]
+margin_left = 24.0
+margin_top = 23.0
+margin_right = 200.0
+margin_bottom = 71.0
+text = "World Name:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Game_WorldName_LineEdit" type="LineEdit" parent="TabContainer/Game"]
+margin_left = 200.0
+margin_top = 23.0
+margin_right = 984.0
+margin_bottom = 71.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Game_Save_Button" type="Button" parent="TabContainer/Game"]
+margin_left = 24.0
+margin_top = 263.0
+margin_right = 984.0
+margin_bottom = 311.0
+text = "Save"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Game_ExitToMainMenu_Button" type="Button" parent="TabContainer/Game"]
+margin_left = 24.0
+margin_top = 327.0
+margin_right = 984.0
+margin_bottom = 375.0
+text = "Save & Exit to Main Menu"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Settings" type="Panel" parent="TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+theme = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GameplaySettings" type="TabContainer" parent="TabContainer/Settings"]
+margin_left = 8.0
+margin_top = 7.0
+margin_right = 1000.0
+margin_bottom = 439.0
+theme = ExtResource( 4 )
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="General" type="Panel" parent="TabContainer/Settings/GameplaySettings"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Button_ToolbeltRequireButton" type="CheckBox" parent="TabContainer/Settings/GameplaySettings/General"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 416.0
+margin_bottom = 54.0
+text = "Toolbelt Require Button (X/A)"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_LeftHanded" type="CheckBox" parent="TabContainer/Settings/GameplaySettings/General"]
+margin_left = 12.0
+margin_top = 61.0
+margin_right = 416.0
+margin_bottom = 102.0
+text = "Left Handed"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HeightOffsetSetting" type="Control" parent="TabContainer/Settings/GameplaySettings/General"]
+margin_left = 12.0
+margin_top = 157.0
+margin_right = 492.0
+margin_bottom = 205.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_HeightOffset" type="Label" parent="TabContainer/Settings/GameplaySettings/General/HeightOffsetSetting"]
+margin_left = 32.0
+margin_right = 240.0
+margin_bottom = 48.0
+text = "Height Offset:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_HeightOffsetValue" type="Label" parent="TabContainer/Settings/GameplaySettings/General/HeightOffsetSetting"]
+margin_left = 304.0
+margin_right = 416.0
+margin_bottom = 48.0
+text = "1.0"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_HeightOffsetVPlus" type="Button" parent="TabContainer/Settings/GameplaySettings/General/HeightOffsetSetting"]
+margin_left = 416.0
+margin_right = 460.0
+margin_bottom = 45.0
+text = "+"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_HeightOffsetVMinus" type="Button" parent="TabContainer/Settings/GameplaySettings/General/HeightOffsetSetting"]
+margin_left = 256.0
+margin_right = 300.0
+margin_bottom = 45.0
+text = "-"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckBox_EnableMixedRealityCapture" type="CheckBox" parent="TabContainer/Settings/GameplaySettings/General"]
+margin_left = 508.0
+margin_top = 13.0
+margin_right = 924.0
+margin_bottom = 61.0
+text = "Enable Mixed Reality Capture"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ShowDebugConsole_CheckBox" type="CheckBox" parent="TabContainer/Settings/GameplaySettings/General"]
+margin_left = 508.0
+margin_top = 61.0
+margin_right = 924.0
+margin_bottom = 109.0
+text = "Show Debug Console"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sportive" type="Panel" parent="TabContainer/Settings/GameplaySettings"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Label_Sensitivity" type="Label" parent="TabContainer/Settings/GameplaySettings/Sportive"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 156.0
+margin_bottom = 61.0
+text = "Still nothing here yet... will update soon :-)"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Standard" type="Panel" parent="TabContainer/Settings/GameplaySettings"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Label_TurnMode" type="Label" parent="TabContainer/Settings/GameplaySettings/Standard"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 172.0
+margin_bottom = 61.0
+text = "Turn Mode:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OptionButton_TurnMode" type="OptionButton" parent="TabContainer/Settings/GameplaySettings/Standard"]
+margin_left = 188.0
+margin_top = 13.0
+margin_right = 476.0
+margin_bottom = 61.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TurnSettings" type="Control" parent="TabContainer/Settings/GameplaySettings/Standard"]
+margin_left = 12.0
+margin_top = 77.0
+margin_right = 492.0
+margin_bottom = 125.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_SmoothTurnSpeed" type="Label" parent="TabContainer/Settings/GameplaySettings/Standard/TurnSettings"]
+visible = false
+margin_right = 260.0
+margin_bottom = 48.0
+text = "Smooth Turn Speed:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_ClickTurnAngle" type="Label" parent="TabContainer/Settings/GameplaySettings/Standard/TurnSettings"]
+margin_right = 217.0
+margin_bottom = 48.0
+text = "Click Turn Angle:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_TurnValue" type="Label" parent="TabContainer/Settings/GameplaySettings/Standard/TurnSettings"]
+margin_left = 304.0
+margin_right = 416.0
+margin_bottom = 48.0
+text = "180"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_TurnPlus" type="Button" parent="TabContainer/Settings/GameplaySettings/Standard/TurnSettings"]
+margin_left = 416.0
+margin_right = 460.0
+margin_bottom = 45.0
+text = "+"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_TurnMinus" type="Button" parent="TabContainer/Settings/GameplaySettings/Standard/TurnSettings"]
+margin_left = 256.0
+margin_right = 300.0
+margin_bottom = 45.0
+text = "-"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SpeedSettings" type="Control" parent="TabContainer/Settings/GameplaySettings/Standard"]
+margin_left = 12.0
+margin_top = 141.0
+margin_right = 492.0
+margin_bottom = 189.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_MoveSpeedMultiplier" type="Label" parent="TabContainer/Settings/GameplaySettings/Standard/SpeedSettings"]
+margin_right = 217.0
+margin_bottom = 48.0
+text = "Speed Multiplier:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_SpeedValue" type="Label" parent="TabContainer/Settings/GameplaySettings/Standard/SpeedSettings"]
+margin_left = 304.0
+margin_right = 416.0
+margin_bottom = 48.0
+text = "1.0"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_SpeedPlus" type="Button" parent="TabContainer/Settings/GameplaySettings/Standard/SpeedSettings"]
+margin_left = 416.0
+margin_right = 460.0
+margin_bottom = 45.0
+text = "+"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_SpeedMinus" type="Button" parent="TabContainer/Settings/GameplaySettings/Standard/SpeedSettings"]
+margin_left = 256.0
+margin_right = 300.0
+margin_bottom = 45.0
+text = "-"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Textures" type="Panel" parent="TabContainer/Settings/GameplaySettings"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+theme = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_Settings_RefrehTexturesets" type="Button" parent="TabContainer/Settings/GameplaySettings/Textures"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 364.0
+margin_bottom = 61.0
+text = "Refresh Custom Textures"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TerrainBlockTextures_ItemList" type="ItemList" parent="TabContainer/Settings/GameplaySettings/Textures"]
+margin_left = 12.0
+margin_top = 77.0
+margin_right = 364.0
+margin_bottom = 244.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HelpTextTexture_Label" type="Label" parent="TabContainer/Settings/GameplaySettings/Textures"]
+margin_left = 380.0
+margin_top = 13.0
+margin_right = 972.0
+margin_bottom = 237.0
+text = "To add your own textures to the list 
+you need to put .png files onto your Oculus 
+Quest in a folder called \"VoxelWorksQuest\"
+
+The files needs to be called 
+\"terrain_blocks_NAME.png\""
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Online" type="Panel" parent="TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+script = ExtResource( 5 )
+
+[node name="TabContainer" type="TabContainer" parent="TabContainer/Online"]
+margin_left = 8.0
+margin_top = 7.0
+margin_right = 1000.0
+margin_bottom = 439.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Information" type="Panel" parent="TabContainer/Online/TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="LoginAlphaInfo_Label" type="Label" parent="TabContainer/Online/TabContainer/Information"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 972.0
+margin_bottom = 370.0
+text = "IMPORTANT: this is a very early test feature
+
+The upload functionality is in a VERY experimental
+state. If you would like to get an account please join the
+VoxelWorks discord and ask in the #ShareTest channel.
+I will create a test account for you."
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Login" type="Panel" parent="TabContainer/Online/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="LoginTitle_Label" type="Label" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 972.0
+margin_bottom = 61.0
+text = "Login with your Voxel Works Account"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoginEMail_Label" type="Label" parent="TabContainer/Online/TabContainer/Login"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 12.0
+margin_top = 77.0
+margin_right = -796.0
+margin_bottom = -252.0
+text = "Login e-mail:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoginEMail_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 188.0
+margin_top = 77.0
+margin_right = 476.0
+margin_bottom = 125.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Login_Password_Label" type="Label" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 12.0
+margin_top = 141.0
+margin_right = 188.0
+margin_bottom = 189.0
+text = "Password:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Login_Password_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 188.0
+margin_top = 141.0
+margin_right = 476.0
+margin_bottom = 189.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoginName_Label" type="Label" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 12.0
+margin_top = 205.0
+margin_right = 188.0
+margin_bottom = 253.0
+text = "User Name: "
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoginName_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 188.0
+margin_top = 205.0
+margin_right = 476.0
+margin_bottom = 253.0
+text = "..."
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoginStatusMessage_Label" type="Label" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 12.0
+margin_top = 333.0
+margin_right = 972.0
+margin_bottom = 381.0
+custom_styles/normal = ExtResource( 3 )
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Login_Button" type="Button" parent="TabContainer/Online/TabContainer/Login"]
+margin_left = 12.0
+margin_top = 269.0
+margin_right = 972.0
+margin_bottom = 317.0
+text = "Login"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Login"]
+
+[node name="Login_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Login"]
+
+[node name="Share" type="Panel" parent="TabContainer/Online/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="ShareWorldOnline_Button" type="Button" parent="TabContainer/Online/TabContainer/Share"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 972.0
+margin_bottom = 61.0
+text = "Share current world Online"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Share_Status_Label" type="Label" parent="TabContainer/Online/TabContainer/Share"]
+margin_left = 12.0
+margin_top = 317.0
+margin_right = 972.0
+margin_bottom = 365.0
+custom_styles/normal = ExtResource( 3 )
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Share_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Share"]
+
+[node name="Register" type="Panel" parent="TabContainer/Online/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Register_Title_Label" type="Label" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = -4.0
+margin_top = 13.0
+margin_right = 972.0
+margin_bottom = 58.0
+text = "Register a new Voxel Works account (not enabled yet/see Info)"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_EMail_Label" type="Label" parent="TabContainer/Online/TabContainer/Register"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 12.0
+margin_top = 77.0
+margin_right = -828.0
+margin_bottom = -252.0
+text = "EMail:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_EMail_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = 188.0
+margin_top = 77.0
+margin_right = 476.0
+margin_bottom = 125.0
+editable = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_Username_Label" type="Label" parent="TabContainer/Online/TabContainer/Register"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 12.0
+margin_top = 141.0
+margin_right = -796.0
+margin_bottom = -188.0
+text = "Username:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_Username_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = 188.0
+margin_top = 141.0
+margin_right = 476.0
+margin_bottom = 189.0
+editable = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_Password_Label" type="Label" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = 12.0
+margin_top = 205.0
+margin_right = 188.0
+margin_bottom = 253.0
+text = "Password:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_Password_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = 188.0
+margin_top = 205.0
+margin_right = 476.0
+margin_bottom = 253.0
+editable = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_StatusMessage_Label" type="Label" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = 12.0
+margin_top = 333.0
+margin_right = 972.0
+margin_bottom = 381.0
+custom_styles/normal = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_Button" type="Button" parent="TabContainer/Online/TabContainer/Register"]
+margin_left = 12.0
+margin_top = 269.0
+margin_right = 972.0
+margin_bottom = 317.0
+disabled = true
+text = "Register"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Register_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Register"]
+[connection signal="text_changed" from="TabContainer/Game/Game_WorldName_LineEdit" to="." method="_on_Game_WorldName_LineEdit_text_changed"]
+[connection signal="pressed" from="TabContainer/Game/Game_Save_Button" to="." method="_on_Game_Save_Button_pressed"]
+[connection signal="pressed" from="TabContainer/Game/Game_ExitToMainMenu_Button" to="." method="_on_Game_ExitToMainMenu_Button_pressed"]
+[connection signal="toggled" from="TabContainer/Settings/GameplaySettings/General/Button_ToolbeltRequireButton" to="TabContainer/Settings/GameplaySettings" method="_on_Button_ToolbeltRequireButton_toggled"]
+[connection signal="toggled" from="TabContainer/Settings/GameplaySettings/General/Button_LeftHanded" to="TabContainer/Settings/GameplaySettings" method="_on_Button_LeftHanded_toggled"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/General/HeightOffsetSetting/Button_HeightOffsetVPlus" to="TabContainer/Settings/GameplaySettings" method="_on_Button_HeightOffsetVPlus_pressed"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/General/HeightOffsetSetting/Button_HeightOffsetVMinus" to="TabContainer/Settings/GameplaySettings" method="_on_Button_HeightOffsetVMinus_pressed"]
+[connection signal="toggled" from="TabContainer/Settings/GameplaySettings/General/CheckBox_EnableMixedRealityCapture" to="TabContainer/Settings/GameplaySettings" method="_on_CheckBox_EnableMixedRealityCapture_toggled"]
+[connection signal="toggled" from="TabContainer/Settings/GameplaySettings/General/ShowDebugConsole_CheckBox" to="." method="_on_ShowDebugConsole_CheckBox_toggled"]
+[connection signal="item_selected" from="TabContainer/Settings/GameplaySettings/Standard/OptionButton_TurnMode" to="TabContainer/Settings/GameplaySettings" method="_on_OptionButton_TurnMode_item_selected"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/Standard/TurnSettings/Button_TurnPlus" to="TabContainer/Settings/GameplaySettings" method="_on_Button_TurnPlus_pressed"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/Standard/TurnSettings/Button_TurnMinus" to="TabContainer/Settings/GameplaySettings" method="_on_Button_TurnMinus_pressed"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/Standard/SpeedSettings/Button_SpeedPlus" to="TabContainer/Settings/GameplaySettings" method="_on_Button_SpeedPlus_pressed"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/Standard/SpeedSettings/Button_SpeedMinus" to="TabContainer/Settings/GameplaySettings" method="_on_Button_SpeedMinus_pressed"]
+[connection signal="pressed" from="TabContainer/Settings/GameplaySettings/Textures/Button_Settings_RefrehTexturesets" to="TabContainer/Settings/GameplaySettings" method="_on_Button_Settings_RefrehTexturesets_pressed"]
+[connection signal="item_selected" from="TabContainer/Settings/GameplaySettings/Textures/TerrainBlockTextures_ItemList" to="TabContainer/Settings/GameplaySettings" method="_on_TerrainBlockTextures_ItemList_item_selected"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Login/Login_Button" to="TabContainer/Online" method="_on_Login_Button_pressed"]
+[connection signal="request_completed" from="TabContainer/Online/TabContainer/Login/Register_HTTPRequest" to="TabContainer/Online" method="_on_Register_HTTPRequest_request_completed"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Share/ShareWorldOnline_Button" to="TabContainer/Online" method="_on_ShareWorldOnline_Button_pressed"]
+[connection signal="request_completed" from="TabContainer/Online/TabContainer/Share/Share_HTTPRequest" to="TabContainer/Online" method="_on_Share_HTTPRequest_request_completed"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Register/Register_Button" to="TabContainer/Online" method="_on_Register_Button_pressed"]
+[connection signal="request_completed" from="TabContainer/Online/TabContainer/Register/Register_HTTPRequest" to="TabContainer/Online" method="_on_Register_HTTPRequest_request_completed"]

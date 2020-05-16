@@ -16,6 +16,9 @@ export var ground_height := 0.0;
 export var gravity := 9.81;
 export var epsilon := 0.001;
 
+export var height_offset := 0.0; # you can make the player taller with this
+
+
 export var force_move_up : bool = false;
 export var move_up_speed : float = 0.0; # 0.0 == instance move up
 export var max_raycast_distance : float = 128.0; 
@@ -91,7 +94,9 @@ func _get_raycast_hit_surrounding(h0, space_state, from, to):
 var fall_speed = 0.0;
 
 func _physics_process(dt):
-	if (!active): return;
+	if (!active): 
+		fall_speed = 0.0;
+		return;
 	
 	if (vr.vrOrigin.is_fixed): 
 		fall_speed = 0.0; # reset the fall speed when the player is fixed
@@ -100,7 +105,7 @@ func _physics_process(dt):
 	on_ground = true;
 	
 	var head_position = vr.vrCamera.global_transform.origin;
-	var player_height = vr.get_current_player_height();
+	var player_height = vr.get_current_player_height() + height_offset;
 	var foot_height = head_position.y - player_height;
 	
 	var max_fall_distance = 0.0;

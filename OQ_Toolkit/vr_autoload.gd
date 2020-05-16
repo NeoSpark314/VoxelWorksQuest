@@ -1,3 +1,5 @@
+# This file needs to be set as AutoLoad script in your Project Settings and called 'vr'
+# It contains all the glue code and helper functions to make individual features work together.
 extends Node
 
 const UI_PIXELS_TO_METER = 1.0 / 1024; # defines the (auto) size of UI elements in 3D
@@ -85,7 +87,7 @@ func remove_dbg_info(key):
 
 var _notification_scene = null;
 
-func show_notification(title, text):
+func show_notification(title, text = ""):
 	if (_notification_scene == null): _notification_scene = load(oq_base_dir + "/OQ_UI2D/OQ_UI2DNotificationWindow.tscn");
 	var nw = _notification_scene.instance();
 	
@@ -125,6 +127,21 @@ var rightController : ARVRController = null;
 var vrOrigin : ARVROrigin = null;
 var vrCamera : ARVRCamera = null;
 
+# these two variable point to leftController/rightController
+# and are swapped when calling
+var dominantController : ARVRController = rightController;
+var nonDominantController : ARVRController = leftController;
+
+func set_dominant_controller_left(is_left_handed):
+	if (is_left_handed):
+		dominantController = leftController;
+		nonDominantController = rightController;
+	else:
+		dominantController = rightController;
+		nonDominantController = leftController;
+		
+func is_dominant_controller_left():
+	return dominantController == leftController;
 
 enum AXIS {
 	None = -1,
@@ -319,7 +336,7 @@ func _refresh_settings():
 	set_default_layer_color_scale(oculus_mobile_settings_cache["default_layer_color_scale"]);
 	set_extra_latency_mode(oculus_mobile_settings_cache["extra_latency_mode"]);
 	set_foveation_level(oculus_mobile_settings_cache["foveation_level"]);
-	
+	set_enable_dynamic_foveation(oculus_mobile_settings_cache["foveation_dynamic"]);
 	set_swap_interval(oculus_mobile_settings_cache["swap_interval"]);
 	set_clock_levels(oculus_mobile_settings_cache["clock_levels_cpu"], oculus_mobile_settings_cache["clock_levels_gpu"]);
 	
@@ -343,6 +360,7 @@ var oculus_mobile_settings_cache = {
 	"default_layer_color_scale" : Color(1.0, 1.0, 1.0, 1.0),
 	"extra_latency_mode" : ovrVrApiTypes.OvrExtraLatencyMode.VRAPI_EXTRA_LATENCY_MODE_ON,
 	"foveation_level" : FoveatedRenderingLevel.Off,
+	"foveation_dynamic" : 0,
 	"swap_interval" : 1,
 	"clock_levels_cpu" : 2,
 	"clock_levels_gpu" : 2,
@@ -404,6 +422,13 @@ func set_tracking_space(tracking_space):
 	else:
 		oculus_mobile_settings_cache["tracking_space"] = tracking_space;
 		return ovrTrackingTransform.set_tracking_space(tracking_space);
+		
+func locate_tracking_space(target_tracking_space):
+	if (!ovrTrackingTransform):
+		log_error("set_tracking_space(): no ovrTrackingTransform object.");
+		return Transform();
+	else:
+		return ovrTrackingTransform.locate_tracking_space(target_tracking_space);
 
 
 # these variables are currently only used by the recording playback
@@ -530,6 +555,14 @@ func set_foveation_level(ffr_level):
 	else:
 		oculus_mobile_settings_cache["foveation_level"] = ffr_level;
 		return ovrPerfromance.set_foveation_level(ffr_level);
+
+func set_enable_dynamic_foveation(ffr_dynamic):
+	if (!ovrPerfromance):
+		log_error("set_enable_dynamic_foveation(): no ovrPerfromance object.");
+		return false;
+	else:
+		oculus_mobile_settings_cache["foveation_dynamic"] = ffr_dynamic;
+		return ovrPerfromance.set_enable_dynamic_foveation(ffr_dynamic);
 
 func set_swap_interval(interval):
 	if (!ovrPerfromance):

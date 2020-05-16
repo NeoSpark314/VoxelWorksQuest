@@ -16,8 +16,6 @@ func _on_cancel():
 
 func _on_enter():
 	emit_signal("text_input_enter", _text_edit.text);
-	
-	print("UUUH");
 	_text_edit.text = "";
 
 
@@ -30,7 +28,7 @@ func _ready():
 		_keyboard.connect("enter_pressed", self, "_on_enter");
 	
 	if (show_text_input):
-		_text_edit.visible = true;
+		$OQ_UI2DCanvas_TextInput.visible = true;
 		_text_edit.grab_focus();
 	else:
-		_text_edit.visible = false; # ?? maybe delte the node if not used
+		$OQ_UI2DCanvas_TextInput.visible = false; # ?? maybe delte the node if not used

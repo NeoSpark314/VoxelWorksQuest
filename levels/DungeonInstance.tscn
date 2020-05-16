@@ -6,7 +6,6 @@
 
 [sub_resource type="Environment" id=1]
 background_mode = 1
-background_color = Color( 0.196078, 0.027451, 0.027451, 1 )
 ambient_light_color = Color( 0.705882, 0.705882, 0.705882, 1 )
 
 [node name="DungeonInstance" type="Spatial"]
@@ -25,3 +24,5 @@ material/1 = ExtResource( 1 )
 [node name="Container_BuildVoxel" type="Spatial" parent="."]
 
 [node name="Container_CraftingGrids" type="Spatial" parent="."]
+
+[node name="Container_Mobs" type="Spatial" parent="."]

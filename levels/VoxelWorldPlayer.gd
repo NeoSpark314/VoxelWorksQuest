@@ -481,6 +481,7 @@ var _last_valid_position := Vector3(0, 0, 0);
 
 func _voxel_id_valid_for_head(id) -> bool:
 	if (id == 0): return true;
+	if (vdb.game_mode == vdb.GAME_MODE.CREATIVE): return true;
 	
 	var voxel_block_def = vdb.voxel_block_defs[id];
 	if (voxel_block_def.transparent): return true;
@@ -639,6 +640,24 @@ func _check_and_show_creative_mode_ui(controller : ARVRController):
 		ui.global_transform.basis = controller.global_transform.basis;
 		ui.global_transform.origin -= controller.get_palm_transform().basis.z * 0.5;
 
+
+func _update_ui_raycasts_visibility():
+	_left_ui_raycast.visible = false;
+	_right_ui_raycast.visible = false;
+
+	if (_creative_is_flying):
+		_left_ui_raycast.visible = true;
+		_right_ui_raycast.visible = true;
+		
+	if ($HUD/ArmUserInterface.active_controller == vr.leftController):
+		_right_ui_raycast.visible = true;
+	if ($HUD/ArmUserInterface.active_controller == vr.rightController):
+		_left_ui_raycast.visible = true;
+		
+	if (_ingame_menu.visible):
+		_left_ui_raycast.visible = true;
+		_right_ui_raycast.visible = true;
+
 	
 func _check_and_process_creative_mode(dt):
 	if (   (vr.button_pressed(vr.BUTTON.A) && vr.button_just_pressed(vr.BUTTON.B)) 
@@ -647,8 +666,6 @@ func _check_and_process_creative_mode(dt):
 			if(_creative_is_flying):
 				vr.vrOrigin.global_transform.origin.y += 1.0;
 				$CreativeModeStuff.visible = true;
-				_left_ui_raycast.visible = true;
-				_right_ui_raycast.visible = true;
 				_cm_ui = $CreativeModeStuff.find_node("CreativeModeMainUI", true, false);
 				if (!_cm_ui): vr.log_error("Could not find CreativeModeMainUI");
 				var ui = $CreativeModeStuff/OQ_UI2D_CreativeModeMainUI;
@@ -658,8 +675,7 @@ func _check_and_process_creative_mode(dt):
 				ui.global_transform.origin -= vr.rightController.get_palm_transform().basis.z * 0.5;
 			else:
 				$CreativeModeStuff.visible = false;
-				_left_ui_raycast.visible = false;
-				_right_ui_raycast.visible = false;
+
 
 	if (_creative_is_flying):
 		feature_falling.active = false;
@@ -675,9 +691,17 @@ func _check_and_process_creative_mode(dt):
 		if (vr.button_pressed(vr.BUTTON.B)):
 			vr.vrOrigin.global_transform.origin.y += _fly_up_down_speed * dt;
 		
-		_creative_mode_update_controller_world_interaction(vr.leftController, false, !_left_ui_raycast.is_colliding);
-		_creative_mode_update_controller_world_interaction(vr.rightController, true, !_right_ui_raycast.is_colliding);
+		_creative_mode_update_controller_world_interaction(vr.dominantController, true, !_right_ui_raycast.is_colliding);
+		_creative_mode_update_controller_world_interaction(vr.nonDominantController, false, !_left_ui_raycast.is_colliding);
 
+
+func _back_to_main_menu():
+	_save_all();
+	get_parent().remove_child(self); # we need to remove vdb.voxel_world_player 
+	terrain = null;
+	vr.switch_scene("res://levels/MainMenuRoom.tscn", 0.0, 0.0);
+	
+onready var _ingame_menu = $HUD/IngameMenu_3DScene;
 
 func _physics_process(dt):
 	_global_dt = dt;
@@ -687,11 +711,7 @@ func _physics_process(dt):
 	vdb.global_statistics.total_playtime += dt;
 
 	if (vr.button_just_pressed(vr.BUTTON.ENTER)):
-		_save_all();
-		get_parent().remove_child(self); # we need to remove vdb.voxel_world_player 
-		terrain = null;
-		vr.switch_scene("res://levels/MainMenuRoom.tscn", 0.0, 0.0);
-		return;
+		_ingame_menu.toggle_visible();
 	
 	# foot position with a slight epsilon
 	_player_foot_position = vr.vrCamera.global_transform.origin - Vector3(0.0, vr.get_current_player_height(), 0.0);
@@ -743,6 +763,10 @@ func _physics_process(dt):
 	_controller_hit_move_detection(vr.leftController);
 	
 	
+	_update_ui_raycasts_visibility();
+
+	
+	
 	var play_step_sound = false;
 	
 	if (walk_in_place.step_low_just_detected):
@@ -763,11 +787,16 @@ func _physics_process(dt):
 		
 
 func _save_all():
-	if (!parent_world.save_enabled): return;
+	if (!parent_world.save_enabled):
+		return false;
 	
 	vdb.persistence_save_game(persisted_nodes_array);
 	vdb.save_global_statistics();
 	vdb.save_gameplay_settings();
+	
+	return true;
+
+
 
 
 func _notification(what):
@@ -883,12 +912,33 @@ func hack_check_and_give_craft_guide():
 
 
 func _apply_gameplay_settings():
+	vr.log_info("_apply_gameplay_settings() called");
 	if (locomotion_stick):
 		locomotion_stick.turn_type = vdb.gameplay_settings.stick_locomotion_turn_mode;
 		locomotion_stick.click_turn_angle = vdb.gameplay_settings.stick_locomotion_click_turn_angle;
 		locomotion_stick.smooth_turn_speed = vdb.gameplay_settings.stick_locomotion_smooth_turn_speed;
 	else:
 		vr.log_warning("in _apply_gameplay_settings(): no locomotion_stick")
+	
+	# check if the height offset changed and then trigger also force_move up
+	if (feature_falling && feature_falling.height_offset != vdb.gameplay_settings.player_height_offset):
+		feature_falling.height_offset = vdb.gameplay_settings.player_height_offset;
+		_time_since_climbing = 0.0; # this forces to trigger force_move_up when the gameplay settings changed (which is required for the height adjustment)
+	
+	vr.set_dominant_controller_left(vdb.gameplay_settings.left_handed);
+
+	# Here we check if MRC should be enabled and add/remove the node
+	var mrc_node = $OQ_ARVROrigin.find_node("Feature_MixedRealityCapture", false, false);
+	
+	if (vdb.gameplay_settings.enable_mixed_reality_capture):
+		if (mrc_node == null):
+			$OQ_ARVROrigin.add_child(load("res://OQ_Toolkit/OQ_ARVROrigin/Feature_MixedRealityCapture.tscn").instance())
+			vr.log_info("Added Mixed Reality Capture Node")
+	else:
+		if (mrc_node != null):
+			mrc_node.get_parent().remove_child(mrc_node);
+			mrc_node.queue_free();
+			vr.log_info("Removed Mixed Reality Capture Node")
 
 func gameplay_settings_changed_notification():
 	vr.log_info("VoxelGame: gameplay_settings_changed_notification()");
@@ -1033,6 +1083,8 @@ func move_player_into_terrain_after_load(_terrain):
 	_creative_is_flying = false;
 	$CreativeModeStuff.visible = false;
 	
+	_ingame_menu.visible = false;
+	
 	$OQ_ARVROrigin/OQ_LeftController/Feature_StaticGrab._additional_grab_checker = self
 	$OQ_ARVROrigin/OQ_RightController/Feature_StaticGrab._additional_grab_checker = self
 	
@@ -1049,9 +1101,9 @@ func move_player_into_terrain_after_load(_terrain):
 #		_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.toilet_paper);
 
 #	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.wood);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stick);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);
-#	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonehammer);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stick);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);
+	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonehammer);
 #	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stone_workbench);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.wooden_crate);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);

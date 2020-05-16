@@ -1,0 +1,320 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=1]
+[ext_resource path="res://levels/MainMenuRoom_Border.stylebox" type="StyleBox" id=2]
+[ext_resource path="res://ui/MainMenu.gd" type="Script" id=3]
+[ext_resource path="res://ui/MainMenu_Online.gd" type="Script" id=4]
+[ext_resource path="res://ui/styleboxflat_black.stylebox" type="StyleBox" id=5]
+
+[node name="MainMenu" type="Control"]
+margin_right = 768.0
+margin_bottom = 528.0
+theme = ExtResource( 1 )
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TabContainer" type="TabContainer" parent="."]
+margin_right = 768.0
+margin_bottom = 528.0
+custom_styles/tab_fg = ExtResource( 2 )
+custom_styles/panel = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Load Game" type="Panel" parent="TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+theme = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckBox_ResetStartPosition" type="CheckBox" parent="TabContainer/Load Game"]
+margin_left = 16.0
+margin_top = 352.0
+margin_right = 336.0
+margin_bottom = 400.0
+text = "Reset to Start Position"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CheckBox_ResetCraftingGuide" type="CheckBox" parent="TabContainer/Load Game"]
+margin_left = 400.0
+margin_top = 352.0
+margin_right = 704.0
+margin_bottom = 400.0
+text = "Reset Crafting Guide"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_Title" type="Label" parent="TabContainer/Load Game"]
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 752.0
+margin_bottom = 64.0
+text = "Voxel Works Quest - v0.0.0"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SaveGame_ItemList" type="ItemList" parent="TabContainer/Load Game"]
+margin_left = 15.0
+margin_top = 64.0
+margin_right = 728.0
+margin_bottom = 352.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_LoadGame" type="Button" parent="TabContainer/Load Game"]
+margin_left = 520.0
+margin_top = 407.0
+margin_right = 744.0
+margin_bottom = 455.0
+text = "Load Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="New Game" type="Panel" parent="TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+theme = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_NewGame" type="Label" parent="TabContainer/New Game"]
+margin_left = 8.0
+margin_top = 7.0
+margin_right = 744.0
+margin_bottom = 55.0
+text = "Start New Game"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_WorldName" type="Label" parent="TabContainer/New Game"]
+margin_left = 8.0
+margin_top = 55.0
+margin_right = 248.0
+margin_bottom = 103.0
+text = "World Name:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextEdit_WorldName" type="TextEdit" parent="TabContainer/New Game"]
+margin_left = 248.0
+margin_top = 55.0
+margin_right = 744.0
+margin_bottom = 103.0
+text = "World Without Name"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_WorldSeed" type="Label" parent="TabContainer/New Game"]
+margin_left = 8.0
+margin_top = 119.0
+margin_right = 248.0
+margin_bottom = 167.0
+text = "World Seed:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SpinBox_WorldSeed" type="SpinBox" parent="TabContainer/New Game"]
+margin_left = 248.0
+margin_top = 119.0
+margin_right = 744.0
+margin_bottom = 167.0
+max_value = 1e+09
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_WorldGenerator" type="Label" parent="TabContainer/New Game"]
+margin_left = 8.0
+margin_top = 183.0
+margin_right = 248.0
+margin_bottom = 231.0
+text = "World Generator:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OptionButton_WorldGenerator" type="OptionButton" parent="TabContainer/New Game"]
+margin_left = 248.0
+margin_top = 183.0
+margin_right = 744.0
+margin_bottom = 231.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button_StartNewGame" type="Button" parent="TabContainer/New Game"]
+margin_left = 520.0
+margin_top = 402.0
+margin_right = 744.0
+margin_bottom = 450.0
+text = "Start Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label_GameMode" type="Label" parent="TabContainer/New Game"]
+margin_left = 8.0
+margin_top = 247.0
+margin_right = 248.0
+margin_bottom = 295.0
+text = "Game Mode:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OptionButton_GameMode" type="OptionButton" parent="TabContainer/New Game"]
+margin_left = 248.0
+margin_top = 247.0
+margin_right = 744.0
+margin_bottom = 295.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Online" type="Panel" parent="TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+script = ExtResource( 4 )
+
+[node name="TabContainer" type="TabContainer" parent="TabContainer/Online"]
+margin_left = 8.0
+margin_top = 7.0
+margin_right = 744.0
+margin_bottom = 455.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Information" type="Panel" parent="TabContainer/Online/TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="LoginAlphaInfo_Label" type="Label" parent="TabContainer/Online/TabContainer/Information"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 748.0
+margin_bottom = 157.0
+text = "IMPORTANT: this is a very early test feature
+
+YOU CAN'T PLAY ONLINE, you can only download a
+world created by others. You don't need an account for
+this.
+
+The upload functionality is in a VERY experimental
+state. If you would like to get an account please join the
+VoxelWorks discord and ask in the #ShareTest channel.
+I will create a test account for you."
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Visit World" type="Panel" parent="TabContainer/Online/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="VisitWorld_RefreshList_Button" type="Button" parent="TabContainer/Online/TabContainer/Visit World"]
+margin_left = 12.0
+margin_top = 269.0
+margin_right = 348.0
+margin_bottom = 317.0
+text = "Refresh User List"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VisitWorld_User_ItemList" type="ItemList" parent="TabContainer/Online/TabContainer/Visit World"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 348.0
+margin_bottom = 253.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VisitWorld_World_ItemList" type="ItemList" parent="TabContainer/Online/TabContainer/Visit World"]
+margin_left = 380.0
+margin_top = 13.0
+margin_right = 716.0
+margin_bottom = 253.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VisitWorld_Visit_Button" type="Button" parent="TabContainer/Online/TabContainer/Visit World"]
+margin_left = 380.0
+margin_top = 269.0
+margin_right = 716.0
+margin_bottom = 317.0
+text = "Visit World"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Refresh_User_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Visit World"]
+
+[node name="LoadAndPlay_World_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Visit World"]
+
+[node name="VisitWorld_Status_Label" type="Label" parent="TabContainer/Online/TabContainer/Visit World"]
+margin_left = 12.0
+margin_top = 333.0
+margin_right = 716.0
+margin_bottom = 381.0
+custom_styles/normal = ExtResource( 5 )
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="pressed" from="TabContainer/Load Game/Button_LoadGame" to="." method="_on_Button_LoadGame_pressed"]
+[connection signal="pressed" from="TabContainer/New Game/Button_StartNewGame" to="." method="_on_Button_StartNewGame_pressed"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_RefreshList_Button" to="TabContainer/Online" method="_on_VisitWorld_RefreshList_Button_pressed"]
+[connection signal="item_selected" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_User_ItemList" to="TabContainer/Online" method="_on_VisitWorld_User_ItemList_item_selected"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_Visit_Button" to="TabContainer/Online" method="_on_VisitWorld_Visit_Button_pressed"]
+[connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/Refresh_User_HTTPRequest" to="TabContainer/Online" method="_on_Refresh_User_HTTPRequest_request_completed"]
+[connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/LoadAndPlay_World_HTTPRequest" to="TabContainer/Online" method="_on_LoadAndPlay_World_HTTPRequest_request_completed"]

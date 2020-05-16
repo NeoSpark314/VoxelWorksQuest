@@ -2,9 +2,6 @@ extends Spatial
 
 var active_controller : ARVRController = null;
 
-var _left_ui_raycast = null;
-var _right_ui_raycast = null;
-
 onready var label = $UITransform/OQ_UILabel_JogDistance;
 
 const VISIBLE_TIME=1.0;
@@ -13,7 +10,6 @@ const VISIBLE_ANGLE_THRESHOLD=0.75;
 var _visibility_timer = 0.0;
 
 var _button_switch_panel : Button = null;
-
 
 
 func _update_label_text():
@@ -35,6 +31,10 @@ func _update_label_text():
 func _process(dt):
 	if (visible && active_controller):
 		global_transform = active_controller.get_ui_transform();
+	
+	#!!TEMP: remove me
+	if (Input.is_action_just_pressed("ui_accept")):
+		vdb.voxel_world_player.share_current_world_online();
 
 
 func _check_and_make_visible(controller : ARVRController):
@@ -59,19 +59,12 @@ func _check_and_make_visible(controller : ARVRController):
 
 func _check_and_process_process(_dt):
 	_visibility_timer -= _dt;
-	
-	if (_check_and_make_visible(vr.leftController)):
-		_left_ui_raycast.visible = false;
-		_right_ui_raycast.visible = true;
-	elif (_check_and_make_visible(vr.rightController)):
-		_left_ui_raycast.visible = true;
-		_right_ui_raycast.visible = false;
-		
-	
+
+	_check_and_make_visible(vr.leftController);
+	_check_and_make_visible(vr.rightController);
+
 	visible = _visibility_timer > 0.0;
 	if (!visible): 
-		_right_ui_raycast.visible = false;
-		_left_ui_raycast.visible = false;
 		active_controller = null;
 		return;
 
@@ -86,24 +79,16 @@ func _set_visible_panel():
 func _switch_panel_pressed():
 	_visible_ui_panel = (_visible_ui_panel + 1) % $UITransform.get_child_count();
 	_set_visible_panel();
-		
-	
-	
 	pass;
 
 func _ready():
 	
 	_button_switch_panel = $OQ_UI2D_SwitchPanelUI.find_node("Button_SwitchPanel", true, false);
 	
+	
 	if (!_button_switch_panel):
 		vr.log_error("_button_switch_panel not found in HUD!");
 	else:
 		_button_switch_panel.connect("pressed", self, "_switch_panel_pressed");
 		
-	_left_ui_raycast = vr.leftController.find_node("Feature_UIRayCast", true, false);
-	_right_ui_raycast = vr.rightController.find_node("Feature_UIRayCast", true, false);
-	
-	if (_left_ui_raycast == null): vr.log_error("ArmUserInterface: can't fine left ui raycast!");
-	if (_right_ui_raycast == null): vr.log_error("ArmUserInterface: can't fine right ui raycast!");
-
 	_set_visible_panel();

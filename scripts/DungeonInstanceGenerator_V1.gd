@@ -112,6 +112,7 @@ func print_maze(m, resX, resY):
 	print(get_maze_map_as_string(m, resX, resY));
 
 
+
 func generate_2d_maze(resX, resY):
 	var rng := RandomNumberGenerator.new();
 	
@@ -133,6 +134,27 @@ func generate_2d_maze(resX, resY):
 	return in_cells;
 
 
+# here we can inspect the template and do some transformations on the
+# data or create derived information like enemy spawners
+func _parse_vox_as_template(vox_data):
+	var t = {};
+	
+	t["mvoxel_data"] = vox_data;
+	
+	for i in range(0, vox_data.size()/4):
+		#var x = vox_data[i*4+0];
+		#var y = vox_data[i*4+2];
+		#var z = vox_data[i*4+1]; #!!CAREFUL: it is flipped below when instanced; but these are local coordinates anyway and shold not be needed here
+		
+		var id = vox_data[i*4+3];
+	
+	
+	
+	
+	return t;
+	
+	
+
 func load_templates(prefix):
 	var templates = []
 	var path = "res://data/voxel_templates/dungeon_templates/";
@@ -146,8 +168,8 @@ func load_templates(prefix):
 		if file == "":
 			break
 		elif not file.begins_with(".") and file.begins_with(prefix):
-			var vox = vdb.load_vox_onlyvoxels(path + file)[3];
-			templates.append(vox);
+			var vox = vdb.load_vox_onlyvoxels(path + file);
+			templates.append(_parse_vox_as_template(vox[3]));
 	
 	dir.list_dir_end();
 	
@@ -157,25 +179,66 @@ func load_templates(prefix):
 
 var maze_res = 4;
 
+var _rooms := {};
+
+
+func _generate_rooms_from_maze(maze : Dictionary):
+	var rooms = {};
+	
+	for key in maze.keys():
+		var cell = maze[key];
+		var mvox_rotation = 0;
+		var mvox_flipped = false;
+		var mvox_template = null;
+		
+		if ((cell & D_MASK_UP != 0) && (cell & D_MASK_LEFT != 0)):
+			mvox_template = vr.randomArrayElement(temp_rng, tt2);
+		elif (cell & (D_MASK_UP) != 0):
+			mvox_template = vr.randomArrayElement(temp_rng, tt1);
+		elif (cell & (D_MASK_LEFT) != 0):
+			mvox_template = vr.randomArrayElement(temp_rng, tt1);
+			mvox_rotation = 3;
+			mvox_flipped = true;
+		else:
+			mvox_template = vr.randomArrayElement(temp_rng, tt0);
+
+		
+		var r = {
+			"maze_cell" : maze[key],
+			"mvox_template" : mvox_template,
+			"mvox_rotation" : mvox_rotation,
+			"mvox_flipped" : mvox_flipped,
+		}
+		
+		
+		
+		rooms[key] = r;
+		
+	return rooms;
+
+
 func initialize(generator_seed):
 	vr.log_info("Initializeing DungeonInstanceGenerator " + get_version_string())
 	
 	_fill_block_translation_table();
 
-
-	_maze = generate_2d_maze(maze_res, maze_res);
-	#print_maze(_maze, maze_res, maze_res);
-
-	
-	var template_size = 8;
-	var vox = vdb.load_vox_onlyvoxels("res://data/voxel_templates/dungeon_templates/t8x8x8_.vox");
-	if (vox[0] != template_size || vox[1] != template_size || vox[2] != template_size):
-		vr.log_error(".vox tempalte has unexpected size %d %d %d" % [vox[0],vox[1],vox[2]]);
-		return;
-	
 	tt0 = load_templates("t_0");
 	tt1 = load_templates("t_1");#vdb.load_vox_onlyvoxels("res://data/voxel_templates/dungeon_templates/t_1_000.vox")[3];
 	tt2 = load_templates("t_2");#vdb.load_vox_onlyvoxels("res://data/voxel_templates/dungeon_templates/t_2_000.vox")[3];
+
+	_maze = generate_2d_maze(maze_res, maze_res);
+	_rooms = _generate_rooms_from_maze(_maze);
+	
+	#print(_rooms)
+	#print_maze(_maze, maze_res, maze_res);
+
+	
+	#var template_size = 8;
+	#var vox = vdb.load_vox_onlyvoxels("res://data/voxel_templates/dungeon_templates/t8x8x8_.vox");
+	#if (vox[0] != template_size || vox[1] != template_size || vox[2] != template_size):
+	#	vr.log_error(".vox tempalte has unexpected size %d %d %d" % [vox[0],vox[1],vox[2]]);
+	#	return;
+	
 
 
 const buffer_size : int = 16;
@@ -186,19 +249,20 @@ const template_size = Vector3(8, 8, 8);
 
 # put an instance into the voxel buffer block
 var temp_rng = RandomNumberGenerator.new();
-func fill_instance(buffer, buffer_origin : Vector3, ttA, rotate, flip=false):
+func fill_instance(buffer, buffer_origin : Vector3, _template, rotate, flip=false):
 	
 	#!!TODO: this is not good here and the rng seed should be decided
 	#        on maze generation
-	var tt = vr.randomArrayElement(temp_rng, ttA);
+	var tt = _template.mvoxel_data;
 	
 	for i in range(0, tt.size()/4):
+		var mID = tt[i*4+3];
+		if (mID == 0): continue; # no 0 voxels
 		
 		var ttx = tt[i*4+0]; 
 		if (flip): ttx = (int(template_size.x) - 1 - tt[i*4+0]);
 		var ty = tt[i*4+2];
 		var ttz = (int(template_size.z) - 1 - tt[i*4+1])
-		var mID = tt[i*4+3];
 		
 		var tx = ttx;
 		var tz = ttz;
@@ -224,22 +288,26 @@ func fill_instance(buffer, buffer_origin : Vector3, ttA, rotate, flip=false):
 func block2_fromVec3(v : Vector3, d : Vector3):
 	return Vector2(int(v.x) / int(d.x), int(v.z) / int(d.z));
 
-func fill_floor(buffer : VoxelBuffer, buffer_origin : Vector3, maze : Dictionary, maze_block_origin: Vector3):
+func fill_floor(buffer : VoxelBuffer, buffer_origin : Vector3, rooms : Dictionary, maze_block_origin: Vector3):
 	var maze_block_cell_pos = block2_fromVec3(maze_block_origin + buffer_origin, template_size);
 	
-	if (maze.has(maze_block_cell_pos)):
-		var cell = maze[maze_block_cell_pos];
+	if (rooms.has(maze_block_cell_pos)):
+		
+		var room = rooms[maze_block_cell_pos];
+		var cell = room.maze_cell;
 		
 		#print(str(maze_block_cell_pos) + " => " + str(cell));
 		
-		if ((cell & D_MASK_UP != 0) && (cell & D_MASK_LEFT != 0)):
-			fill_instance(buffer, buffer_origin, tt2, 0);
-		elif (cell & (D_MASK_UP) != 0):
-			fill_instance(buffer, buffer_origin, tt1, 0);
-		elif (cell & (D_MASK_LEFT) != 0):
-			fill_instance(buffer, buffer_origin, tt1, 3, true);
-		else:
-			fill_instance(buffer, buffer_origin, tt0, 0);
+		fill_instance(buffer, buffer_origin, room.mvox_template, room.mvox_rotation, room.mvox_flipped);
+		
+#		if ((cell & D_MASK_UP != 0) && (cell & D_MASK_LEFT != 0)):
+#			fill_instance(buffer, buffer_origin, tt2, 0);
+#		elif (cell & (D_MASK_UP) != 0):
+#			fill_instance(buffer, buffer_origin, tt1, 0);
+#		elif (cell & (D_MASK_LEFT) != 0):
+#			fill_instance(buffer, buffer_origin, tt1, 3, true);
+#		else:
+#			fill_instance(buffer, buffer_origin, tt0, 0);
 		#buffer.fill_area(1, buffer_origin, buffer_origin + template_size, 0);
 	else:
 		buffer.fill_area(_magica_to_voxelid[1], buffer_origin, buffer_origin + template_size, 0);
@@ -259,7 +327,13 @@ func emerge_block(buffer : VoxelBuffer, origin : Vector3, lod : int) -> void:
 	
 	
 	if (origin.y == 0): # floor level 0
-		fill_floor(buffer, Vector3(0, 0, 0), _maze, origin);
-		fill_floor(buffer, Vector3(8, 0, 0), _maze, origin);
-		fill_floor(buffer, Vector3(0, 0, 8), _maze, origin);
-		fill_floor(buffer, Vector3(8, 0, 8), _maze, origin);
+		fill_floor(buffer, Vector3(0, 0, 0), _rooms, origin);
+		fill_floor(buffer, Vector3(8, 0, 0), _rooms, origin);
+		fill_floor(buffer, Vector3(0, 0, 8), _rooms, origin);
+		fill_floor(buffer, Vector3(8, 0, 8), _rooms, origin);
+
+
+
+# here we create all the enemies based on the map
+func spawn_enemies(world):
+	pass;

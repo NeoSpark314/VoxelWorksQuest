@@ -6,6 +6,18 @@ var dungeon_generator = null;
 
 var save_enabled = false;
 
+
+
+func _spawn_enemy(position):
+	
+	var e = load("res://actors/Ghost.tscn").instance();
+	
+	$Container_Mobs.add_child(e);
+	
+	e.global_transform.origin = position;
+	
+
+
 func _ready():
 	terrain.voxel_library = vdb.voxel_library;
 
@@ -24,6 +36,9 @@ func _ready():
 	vdb.voxel_world_player.move_player_into_terrain_after_load(terrain);
 
 	vdb._set_player_position(dungeon_generator.start_position);
+	
+	
+	_spawn_enemy(dungeon_generator.start_position + Vector3(2,0,0));
 
 
 func _physics_process(_dt):

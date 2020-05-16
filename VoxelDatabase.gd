@@ -1,7 +1,7 @@
 extends Node
 
 # Increment this immediately after release
-const GAME_VERSION_STRING = "0.3.9";
+const GAME_VERSION_STRING = "0.3.10";
 const GAME_NAME = "Voxel Works Quest";
 
 const VOXEL_TEXTURE_ATLAS_SIZE = 32;
@@ -16,9 +16,17 @@ enum GAME_MODE {
 
 var game_mode = GAME_MODE.STANDARD;
 
+func get_game_mode_string():
+	if (game_mode ==  GAME_MODE.STANDARD): return "standard";
+	if (game_mode ==  GAME_MODE.SPORTIVE): return "sportive";
+	if (game_mode ==  GAME_MODE.CREATIVE): return "creative";
+	return "unknown"
+	
+
 #var current_save_file = "game.save"; # this will be the default when not launched via main menu
 var current_save_file_infix = "pre0.3.6_sportive";
 var world_name = null;
+var world_uuid := "invalid-uuid";
 
 
 var gameplay_settings := {
@@ -27,8 +35,39 @@ var gameplay_settings := {
 	stick_locomotion_smooth_turn_speed = 90,
 	stick_locomotion_speed_multiplier = 1.0,
 	
+	player_height_offset = 0.0,
+	
 	toolbelt_require_second_button = false, # an optional safety setting to avoid accidentally grabbing items from the toolbelt
+	left_handed = false,
+	
+	enable_mixed_reality_capture = false,
+	show_debug_console = false,
+	custom_terrain_block_texture_item = 0, # 0 is default
+	
+	online_username = "VoxelWorksPlayer",
+	online_useremail = "",
+	online_password = "",
 }
+
+
+var startup_settings = {}
+
+
+func reset_startup_settings():
+	startup_settings = {
+		load_game = true,
+		save_file_infix = "noname",
+		world_dict = null, # if this is != null the world will be loaded from this dicitonary
+		generator_seed = 0,
+		generator_name = "V1", 
+		world_name = "World Without Name",
+		world_uuid = gen_uuid(),
+		#casual_mode = false,
+		game_mode = GAME_MODE.STANDARD,
+		reset_start_position = false,
+		reset_crafting_guide = false,
+	};
+
 
 var _gameplay_settings_change_listener = [];
 
@@ -1862,6 +1901,7 @@ func _get_save_dictionary(_persisted_nodes_array : Array):
 			"stream_version" : CURRENT_SAVE_STREAM_VERSION,
 			"game_version" : GAME_VERSION_STRING,
 			"world_name" : world_name,
+			"world_uuid" : world_uuid,
 			"terrain_generator_version" : main_world_generator.get_version_string(),
 			"terrain_generator_seed" : main_world_generator.terrain_generator_seed,
 			"save_date" : "%d.%02d.%02d_%02d.%02d.%02d"  % [d.year, d.month, d.day, d.hour, d.minute, d.second],
@@ -1869,7 +1909,7 @@ func _get_save_dictionary(_persisted_nodes_array : Array):
 			"vrCamera_position" : _vec3_to_arr(vr.vrCamera.global_transform.origin),
 			"vrCamera_orientation" : _basis_to_arr(vr.vrCamera.global_transform.basis),
 			#"casual_mode" : casual_mode,
-			"game_mode" : game_mode
+			"game_mode" : game_mode,
 		},
 		"data" : {
 			"block_data" : main_world_generator._persisted_blocks,
@@ -2046,29 +2086,65 @@ func persistence_save_game(_persisted_nodes_array : Array):
 		vr.log_error("Could not save game to " + OS.get_user_data_dir() + "/" + current_save_file_infix);
 
 
-var startup_settings = {
-	load_game = true,
-	save_file_infix = "noname",
-	generator_seed = 0,
-	generator_name = "V1", 
-	world_name = "World Without Name",
-	#casual_mode = false,
-	game_mode = GAME_MODE.STANDARD,
-	reset_start_position = false,
-	reset_crafting_guide = false,
-};
+
+func _loadandplay_game_dict(r):
+	var persisted_blocks = null;
+	var generator_seed = startup_settings.generator_seed; # default seed
+	game_mode = startup_settings.game_mode;
+	world_name = startup_settings.world_name;
+	world_uuid = startup_settings.world_uuid;
+
+	if ((r != null) && (r.desc == null || r.data == null)):
+		vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
+	elif (r != null):
+		if (r.desc.stream_version != CURRENT_SAVE_STREAM_VERSION):
+			vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix + " Wrong stream version: got %d; expected %d" % [r.desc.stream_version, CURRENT_SAVE_STREAM_VERSION])
+		else:
+			_apply_save_dictionary(r);
+
+			# this is the actual saved data from the terrain generator
+			persisted_blocks = r.data.block_data;
+			
+			generator_seed = r.desc.terrain_generator_seed;
+			#TODO: load generator here
+			
+			if (r.desc.has("casual_mode")): # legacy loading before introducing game mode
+				if (r.desc.casual_mode): game_mode = GAME_MODE.STANDARD;
+				else: game_mode = GAME_MODE.SPORTIVE;
+			else:
+				game_mode = r.desc.game_mode;
+			world_name = r.desc.world_name;
+			
+			if (r.desc.has("world_uuid")):
+				world_uuid = r.desc.world_uuid;
+			else:
+				world_uuid = gen_uuid();
+
+			vr.log_info("Loaded game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
+
+	# now we remember the session start statistis; this assumes that we will always
+	# call load_game() at the start of a session :
+	session_start_statistics = get_global_statistics_copy();
+	
+	main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
+	main_world_generator.initialize(generator_seed, persisted_blocks);
+	
+		# reset the start position if requested
+	if (!startup_settings.load_game || startup_settings.reset_start_position):
+		_set_player_position(main_world_generator.start_position);
+		
 
 
 func persistence_load_and_start_game():
 	#_persisted_blocks.clear();
-	var persisted_blocks = null;
 	current_save_file_infix = startup_settings.save_file_infix;
 	
-	var generator_seed = startup_settings.generator_seed; # default seed
-	game_mode = startup_settings.game_mode;
-	world_name = startup_settings.world_name;
+	var r = null;
 	
-	if (startup_settings.load_game):
+	if (startup_settings.world_dict != null):
+		r = startup_settings.world_dict;
+		r.desc.world_uuid = gen_uuid(); # create a new one to avoid overwriting it with multiple shares
+	elif (startup_settings.load_game):
 		var save_desc = File.new();
 		var save_data = File.new();
 		var filename_desc = "savegame_desc_"+current_save_file_infix+".save";
@@ -2081,52 +2157,45 @@ func persistence_load_and_start_game():
 			# we changed the location of the player
 			# TODO: move to savegame converter
 			var data_text = save_data.get_as_text().replace("/GameMain/VoxelGame", "/GameMain/MainWorld/VoxelWorldPlayer");
-			var r = {
+			r = {
 				"desc" : JSON.parse(save_desc.get_as_text()).result,
 				"data" : JSON.parse(data_text).result,
 			}
 			save_desc.close();
 			save_data.close();
-			
-			
-			if (r.desc == null || r.data == null):
-				vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
-			else:
-				if (r.desc.stream_version != CURRENT_SAVE_STREAM_VERSION):
-					vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix + " Wrong stream version: got %d; expected %d" % [r.desc.stream_version, CURRENT_SAVE_STREAM_VERSION])
-				else:
-					_apply_save_dictionary(r);
-
-					# this is the actual saved data from the terrain generator
-					persisted_blocks = r.data.block_data;
-					
-					generator_seed = r.desc.terrain_generator_seed;
-					#TODO: load generator here
-					
-					if (r.desc.has("casual_mode")): # legacy loading before introducing game mode
-						if (r.desc.casual_mode): game_mode = GAME_MODE.STANDARD;
-						else: game_mode = GAME_MODE.SPORTIVE;
-					else:
-						game_mode = r.desc.game_mode;
-					world_name = r.desc.world_name;
-	
-					vr.log_info("Loaded game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
 		else:
 			vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
-		
 
-	# now we remember the session start statistis; this assumes that we will always
-	# call load_game() at the start of a session :
-	session_start_statistics = get_global_statistics_copy();
-	
-	main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
-	main_world_generator.initialize(generator_seed, persisted_blocks);
-	
-		# reset the start position if requested
-	if (!startup_settings.load_game || startup_settings.reset_start_position):
-		_set_player_position(main_world_generator.start_position);
+	_loadandplay_game_dict(r);
 
+
+
+static func getRandomInt(max_value):
+	randomize()
+	return randi() % max_value
+
+static func randomBytes(n):
+	var r = []
+	for index in range(0, n):
+		r.append(getRandomInt(256))
+	return r
+
+static func uuidbin():
+	var b = randomBytes(16)
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	return b
+
+static func gen_uuid():
+	var b = uuidbin()
 	
+	var low = '%02x%02x%02x%02x' % [b[0], b[1], b[2], b[3]]
+	var mid = '%02x%02x' % [b[4], b[5]]
+	var hi = '%02x%02x' % [b[6], b[7]]
+	var clock = '%02x%02x' % [b[8], b[9]]
+	var node = '%02x%02x%02x%02x%02x%02x' % [b[10], b[11], b[12], b[13], b[14], b[15]]
+	
+	return '%s-%s-%s-%s-%s' % [low, mid, hi, clock, node]
 #
 #func persistence_save_game_v1(_persisted_nodes_array : Array):
 #	var save = File.new();
@@ -2260,6 +2329,8 @@ var voxel_world_player = null;
 func initialize():
 	
 	vr.log_info("VoxelDatabase.initialize()");
+	
+	reset_startup_settings();
 	
 	# create the main player
 	voxel_world_player = load("res://levels/VoxelWorldPlayer.tscn").instance();
