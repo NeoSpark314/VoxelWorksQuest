@@ -1006,7 +1006,7 @@ var voxel_block_defs = [
 	{
 		name = "wood_workbench",
 		mine_groups = [BYHAND],
-		cube_tiles_x = [22, 22, 21, 23, 22, 22],
+		cube_tiles_x = [22, 22, 23, 21, 22, 22],
 		cube_tiles_y = 2,
 		sounds = _sfx_defaults.choppy,
 		stability = 8,
