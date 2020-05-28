@@ -1,5 +1,6 @@
 extends Spatial
 
+var uuid = vdb.gen_uuid();
 var _item_def = null;
 
 func _has_predefined_geometry():
@@ -29,10 +30,11 @@ func apply_save_dictionary(r : Dictionary):
 func get_voxel_def():
 	return null;
 
-func can_grab():
+func can_grab(controller):
 	return true;
 
-
+func request_grab(hand_name):
+	vdb.voxel_world_player.request_grab(hand_name, uuid);
 
 func get_grab_object(controller):
 	return self;

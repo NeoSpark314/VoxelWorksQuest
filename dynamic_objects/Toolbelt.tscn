@@ -8,8 +8,8 @@ script = ExtResource( 1 )
 
 [node name="Slots" type="Spatial" parent="."]
 
-[node name="Toolbelt_Slot_1" parent="Slots" instance=ExtResource( 2 )]
+[node name="right" parent="Slots" instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, 0.3 )
 
-[node name="Toolbelt_Slot_2" parent="Slots" instance=ExtResource( 2 )]
+[node name="left" parent="Slots" instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, -0.3 )

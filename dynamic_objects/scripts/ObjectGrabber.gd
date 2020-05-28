@@ -4,6 +4,8 @@ var controller : ARVRController = null;
 
 var grab_area : Area = null;
 var held_object = null;
+var hand_name;
+var _requested_release = false;
 
 signal grab_released_held_object;
 
@@ -11,6 +13,11 @@ func _ready():
 	controller = get_parent();
 	if (not controller is ARVRController):
 		vr.log_error(" in ObjectGrabber.gd: parent not ARVRController.");
+	
+	if controller.get_hand() == ARVRPositionalTracker.TRACKER_LEFT_HAND:
+		hand_name = "left";
+	else:
+		hand_name = "right";
 	
 	var static_grab = controller.find_node("Feature_StaticGrab", false, false)
 	if (static_grab == null):
@@ -30,21 +37,17 @@ func _reparent_object_to_world(o : Spatial):
 		p.remove_child(o);
 		scene_root.add_child(o);
 
-func start_grab(area : Area):
+func start_grab(area):
 	if (area == null): return false;
 	if (!area.visible): return false; # safety check to avoid grabbing objects that were set invisible for delete
 
-	if (area.has_method("can_grab") && area.can_grab()):
-		held_object = area.get_grab_object(controller);
-		_reparent_object_to_world(held_object);
+	if (area.has_method("can_grab") && area.can_grab(controller)):
+		area.request_grab(hand_name);
 		return true;
 		
 	var p = area.get_parent();
-	if (p.has_method("can_grab") && p.can_grab()):
-		held_object = p.get_grab_object(controller);
-		_reparent_object_to_world(held_object);
-		
-		controller.visible = false;
+	if (p.has_method("can_grab") && p.can_grab(controller)):
+		p.request_grab(hand_name);
 		return true;
 	
 	return false;
@@ -57,11 +60,11 @@ func delete_held_object():
 		controller.visible = true;
 
 func release_grab():
-	emit_signal("grab_released_held_object", held_object);
-	if (held_object.has_method("release_grab")):
+	if (held_object && held_object.has_method("release_grab")):
 		held_object.release_grab(controller);
 	held_object = null;
 	controller.visible = true;
+	_requested_release = false;
 	
 func update_grab():
 	if (held_object == null):
@@ -72,8 +75,10 @@ func update_grab():
 				#if body is KinematicBody:
 				if start_grab(o): break;
 	else:
-		if (!controller._button_pressed(vr.CONTROLLER_BUTTON.GRIP_TRIGGER)):
-			release_grab();
+		if (!_requested_release && !controller._button_pressed(vr.CONTROLLER_BUTTON.GRIP_TRIGGER)):
+			_requested_release = true;
+			held_object.visible = false;
+			emit_signal("grab_released_held_object", hand_name, held_object);
 
 
 # position update needs to be in the process

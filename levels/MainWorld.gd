@@ -2,7 +2,7 @@ extends Spatial
 
 onready var terrain = $VoxelTerrain;
 
-var save_enabled = true;
+var save_enabled = false;
 
 # we need to have this function here because many grabbable objects are actually
 # a child of MainWorld now not from the player; but we just delegate the call
@@ -14,15 +14,29 @@ func _ready():
 	terrain.voxel_library = vdb.voxel_library;
 
 	vdb.voxel_world_player.set_player_parent_world(self);
-
-	# the main world is where we start and everything gets initialized
-	#vdb.startup_settings.load_game = false;
-	vdb.persistence_load_and_start_game();
-
-	#only after loading the stream is currently valid
-	terrain.stream = vdb.main_world_generator;
 	
-	vdb.voxel_world_player.move_player_into_terrain_after_load(terrain);
+	if vdb.startup_settings.remote_host:
+		# detach terrain as it has no generator and will crash
+		terrain.get_parent().remove_child(terrain);
+
+		vdb.voxel_world_player.connect_to_server(vdb.startup_settings.remote_host);
+	else:
+		save_enabled = true;
+		
+		add_child(vdb.voxel_world_player);
+		
+		# the main world is where we start and everything gets initialized
+		#vdb.startup_settings.load_game = false;
+		vdb.persistence_load_and_start_game();
+
+		#only after loading the stream is currently valid
+		terrain.stream = vdb.main_world_generator;
+		
+		vdb.voxel_world_player.move_player_into_terrain_after_load(terrain);
+		
+		if vdb.startup_settings.host:
+			core.start_server();
+
 	
 	#$model/AnimationPlayer.get_animation("test animation").set_loop(true)
 	#$model/AnimationPlayer.play("test animation")
@@ -35,4 +49,8 @@ func _ready():
 #	add_child(testhuman);
 #	testhuman.global_transform.origin= Vector3(15, 1, 5);
 
-
+func _process(delta):
+	if vdb.voxel_world_player.socket_client:
+		vdb.voxel_world_player.socket_client.update();
+	elif core.server:
+		core.server.update();

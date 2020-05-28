@@ -50,99 +50,96 @@ func apply_save_dictionary(r : Dictionary):
 	update_active_item();
 
 
-func can_grab():
+func can_grab(controller):
 	if (!visible): return false;
 	if (_inventory[_active_inventory_slot][0] == null): return false; # nothing to grab in the inventory
 	if (_inventory[_active_inventory_slot][1] <= 0): return false; # nothing to grab in the inventory
 	return true;
 
-func get_grab_object(controller):
-	if (!visible): return null;
-	
-	# construct a new object and spawn it into the world
-	if (_inventory[_active_inventory_slot][1] <= 0): return null; # nothing to grab in the inventory
+func request_grab(hand_name):
+	vdb.voxel_world_player.request_from_inventory(hand_name, _active_inventory_slot);
 
-	var def = _inventory[_active_inventory_slot][0];
-	_inventory[_active_inventory_slot][1] -= 1;
+func take_item_from(slot):
+	# construct a new object and spawn it into the world
+	if (_inventory[slot][1] <= 0): return null; # nothing to grab in the inventory
+
+	var def = _inventory[slot][0];
+	_inventory[slot][1] -= 1;
 	
-	if (_inventory[_active_inventory_slot][1] == 0):
-		_inventory[_active_inventory_slot][0] = null;
+	if (_inventory[slot][1] == 0):
+		_inventory[slot][0] = null;
 	update_active_item();
 
-	var ret = null;
-	if (vdb.is_voxel_block_definition(def)):
-		var voxel_object = vdb.create_voxelblock_object_from_def(def);
-		# the newly spawned voxel object needs to live somewhere
-		# maybe not good to always add it to the parent here but let's see
-		get_parent().add_child(voxel_object);
-		return voxel_object;
-	if (vdb.is_item_definition(def)):
-		var item_object = vdb.create_item_object_from_def(def);
-		get_parent().add_child(item_object);
-		return item_object;
-	else:
-		vr.log_error("Inventory: unsupported item_def in inventory?!");
+	var voxel_object = vdb.create_object_from_def(def);
+	vdb.voxel_world_player.parent_world.add_child(voxel_object);
+
+	return voxel_object;
 		
 	
-	return null;
-
-
-func check_and_put_in_inventory(obj):
+func can_put(obj):
 	if (!visible): return false; # we can only put things in the inventory when
 	if (obj == null):
-		vr.log_warning("check_and_put_in_inventory() with null object");
+		vr.log_warning("can_put() with null object");
 		return false;
 	
 	if (not obj is Spatial):
-		vr.log_warning("check_and_put_in_inventory() object " + str(obj) + "is not Spatial");
+		vr.log_warning("can_put() object " + str(obj) + "is not Spatial");
 		return false;
-		
-	if (!obj.visible): return false; # safety check to avoid readding invisible objects
 	
+	# needs a voxel or item def
+	if !("_voxel_def" in obj || "_item_def" in obj):
+		return false;
+
 	for o in obj.get_geometry_node().get_overlapping_areas():
 		if o == $Area:
-			if ("_voxel_def" in obj): # we are a voxel block
-				return add_item_or_block_to_inventory(obj._voxel_def); #if we can put it in we return true;
-			elif ("_item_def" in obj):
-				return add_item_or_block_to_inventory(obj._item_def);
+				return true;
 	
 	return false;
 
-
-func add_item_or_block_to_inventory(voxel_block_defs):
+func get_available_slot(voxel_or_item_def):
 	var empty_space = -1;
-	
-	var sound_position = vr.vrCamera.global_transform.origin - vr.vrCamera.global_transform.basis.z; # behind the player
-	
-	for pos_it in range(0, inventory_size):
-		var i = (pos_it + _active_inventory_slot) % inventory_size; # start at the displayed slot
-		var ii = _inventory[i][0];
-		var ii_count = _inventory[i][1];
-		# find the first empty space
-		if (empty_space < 0 && ii == null):
-			empty_space = i; # we remember the first 
-		
-		# check if the same voxel is already there
-		if (ii != null):
-			if (ii.name == voxel_block_defs.name && ii_count < ii.stackability):
-				_inventory[i][1] = _inventory[i][1] + 1;
-				#vr.log_info("Increased stack size of " + voxel_block_defs.name + " to " + str(_inventory[i][1]));
-				update_active_item();
-				vdb._play_sfx(vdb.sfx_put_in_inventory, sound_position);
-				return true;
 
-	if (empty_space < 0):
+	for pos_it in range(0, inventory_size):
+		# start at the displayed slot and wrap around
+		var slot = (pos_it + _active_inventory_slot) % inventory_size;
+		var item = _inventory[slot][0];
+		var item_count = _inventory[slot][1];
+
+		# get first available slot
+		if !item && empty_space == -1:
+			empty_space = slot;
+
+		# return a stackable slot
+		if item && item.name == voxel_or_item_def.name && item_count < item.stackability:
+			return slot;
+	
+	if empty_space == -1:
+		var sound_position = vr.vrCamera.global_transform.origin - vr.vrCamera.global_transform.basis.z; # behind the player
+
 		vr.log_info("No empty space in inventory.");
 		vdb._play_sfx(vdb.sfx_no_space_in_inventory, sound_position);
-		return false; # no space in inventory
-		
-	_inventory[empty_space][0] = voxel_block_defs;
-	_inventory[empty_space][1] = 1; # first item in the inventory
-	#vr.log_info("Putting " + voxel_block_defs.name + " in the inventory.");
 	
-	update_active_item();
+	return empty_space;
+
+func add_item_to_slot(voxel_or_item_def, slot):
+	_inventory[slot][0] = voxel_or_item_def;
+	_inventory[slot][1] += 1;
+	
+	var sound_position = vr.vrCamera.global_transform.origin - vr.vrCamera.global_transform.basis.z; # behind the player
 	vdb._play_sfx(vdb.sfx_put_in_inventory, sound_position);
-	return true; # added to inventory
+
+	update_active_item();
+
+
+func add_item_or_block_to_inventory(voxel_or_item_def):
+	var slot = get_available_slot(voxel_or_item_def);
+	
+	if slot == -1:
+		return false;
+	
+	add_item_to_slot(voxel_or_item_def, slot);
+
+	return true;
 
 var selected_item = 0;
 
@@ -194,11 +191,11 @@ func show_inventory():
 		update_active_item();
 		
 	if (_active_inventory_controller._button_just_pressed(vr.CONTROLLER_BUTTON.XA)):
-		_active_inventory_slot = (_active_inventory_slot + inventory_size - 1) % inventory_size;
-		update_active_item();
+		var updated_slot = (_active_inventory_slot + inventory_size - 1) % inventory_size;
+		vdb.voxel_world_player.send_active_slot(updated_slot);
 	if (_active_inventory_controller._button_just_pressed(vr.CONTROLLER_BUTTON.YB)):
-		_active_inventory_slot = (_active_inventory_slot + 1) % inventory_size;
-		update_active_item();
+		var updated_slot = (_active_inventory_slot + 1) % inventory_size;
+		vdb.voxel_world_player.send_active_slot(updated_slot);
 		
 
 func hide_inventory():
