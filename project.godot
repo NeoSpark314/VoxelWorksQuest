@@ -65,6 +65,7 @@ config/icon="res://data/graphics2d/icons/icon_64.png"
 vr="*res://OQ_Toolkit/vr_autoload.gd"
 vdb="*res://VoxelDatabase.gd"
 Firebase="*res://networking/firebase.gd"
+core="*res://logic/core.gd"
 
 [display]
 

@@ -2,10 +2,17 @@ extends Spatial
 
 onready var slot = $Slot;
 
-func can_grab():
-	if slot.get_child_count() == 0: return false;
-	return true;
+func can_grab(controller):
+	if slot.get_child_count() == 0:
+		return false;
+
+	if (vdb.gameplay_settings.toolbelt_require_second_button && !controller._button_pressed(vr.CONTROLLER_BUTTON.XA)):
+		return false;
 	
+	return true;
+
+func request_grab(hand_name):
+	vdb.voxel_world_player.request_tool_to_hand(name, hand_name);
 	
 func get_slot_object():
 	if slot.get_child_count() == 0: return null;
@@ -14,30 +21,30 @@ func get_slot_object():
 	return obj;
 
 
-func get_grab_object(controller):
-	if (vdb.gameplay_settings.toolbelt_require_second_button):
-		if (!controller._button_pressed(vr.CONTROLLER_BUTTON.XA)):
-			return null;
-	
+func get_grab_object():
 	return get_slot_object();
 	
-func check_and_put_in_toolbelt_slot(held_obj):
-	if ($Slot.get_child_count() > 0): return false; # already something in there
-	var item_def = held_obj.get_item_def();
-	if (item_def == null): return false; # not a tool item
+func can_put(held_obj):
+	if ($Slot.get_child_count() > 0):
+		return false; # already something in there
 	
-	# here we need to check if we have a parent; only then we are already
-	# in the world
-	if (held_obj.get_parent()): 
-		if (!$Area.overlaps_area(held_obj.get_geometry_node())): return false;
-		held_obj.get_parent().remove_child(held_obj);
-		
+	if (!held_obj.get_item_def()):
+		return false; # not a tool item
+
+	if (!$Area.overlaps_area(held_obj.get_geometry_node())):
+		return false; # not overlapping
+	
+	return true;
+
+func put_item(held_obj):
+	var p = held_obj.get_parent();
+
+	if p:
+		p.remove_child(held_obj);
+
 	slot.add_child(held_obj);
 	held_obj.transform = Transform();
-	
 	$MeshInstance.visible = false;
-	
-
 
 func _on_Area_area_entered(area):
 	if (slot.get_child_count() > 0):

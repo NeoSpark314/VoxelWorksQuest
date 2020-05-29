@@ -14,7 +14,10 @@ onready var _left_ui_raycast = $OQ_ARVROrigin/OQ_LeftController/Feature_UIRayCas
 onready var _right_ui_raycast = $OQ_ARVROrigin/OQ_RightController/Feature_UIRayCast;
 
 
-var auto_put_in_inventory = true;
+var preferences = {
+	auto_put_in_inventory = true
+}
+
 var _player_inventory = null;
 var _player_toolbelt = null;
 
@@ -32,216 +35,512 @@ var _global_dt := 0.0;
 
 var _destroy_voxel_node = preload("res://dynamic_objects/WorldInteraction_DestroyVoxel.tscn");
 var _build_voxel_node = preload("res://dynamic_objects/WorldInteraction_BuildVoxel.tscn");
+var _player_dummy = preload("res://dynamic_objects/PlayerDummy.tscn");
 
 var _player_foot_position := Vector3(0, 0, 0);
 var _player_voxeldef_below_foot = null;
 var _player_voxeldef_above_foot = null;
 
 
-func remove_voxel(pos):
-	_terrain_tool.channel = 0; #VoxelBuffer.CHANNEL_TYPE
-	_terrain_tool.value = 1;
-	_terrain_tool.mode = VoxelTool.MODE_REMOVE;
-	_terrain_tool.do_point(pos);
-	terrain.stream.persistence_change_voxel(pos, 0)
+### client code
 
-func add_voxel(pos, type):
-	_terrain_tool.channel = 0; #VoxelBuffer.CHANNEL_TYPE
-	_terrain_tool.value = type;
-	_terrain_tool.mode = VoxelTool.MODE_ADD;
-	_terrain_tool.do_point(pos);
-	terrain.stream.persistence_change_voxel(pos, type)
+var user_dummy_by_uuid = {};
+var socket_client = null;
+var uuid = vdb.gen_uuid();
 
-# check surrounding voxel if sth. can be build there
-func can_build_at_pos(voxel_pos):
-	for x in range(-1, 2, 2):
-		if (_terrain_tool.get_voxel(voxel_pos + Vector3(x, 0, 0)) != 0): return true;
-	for y in range(-1, 2, 2):
-		if (_terrain_tool.get_voxel(voxel_pos + Vector3(0, y, 0)) != 0): return true;
-	for z in range(-1, 2, 2):
-		if (_terrain_tool.get_voxel(voxel_pos + Vector3(0, 0, z)) != 0): return true;
-	return false;
-	
-func _add_build_voxel(voxel_id, voxel_position, hit_position, held_obj, controller, is_physical):
-	#var voxel_block_def = vdb.voxel_block_defs[1];
-	if (held_obj == null): return false; # can't build out of nothing
-	
-	var block_def = held_obj.get_voxel_def();
-	if (block_def == null): return false;
-	
-	var build_node = null;
-	# search if we already have a node at the target position
-	for n in parent_container_build_voxel.get_children():
-		if (n.translation == voxel_position):
-			build_node = n;
-			break;
-	
-	# spawn a new build node if we did not finde one above
-	if (build_node == null):
-		if (!can_build_at_pos(voxel_position)): return false;
-		build_node = _build_voxel_node.instance();
-		build_node.initialize(voxel_position, hit_position, block_def);
-		parent_container_build_voxel.add_child(build_node);
-	
-	# increment until it returns true
-	if (build_node.increment_build()):
-		var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
-		obj_grabber.delete_held_object();
-		add_voxel(hit_position, block_def.id);
-		if (is_physical): vdb.global_statistics.build_blocks += 1;
-		
-	return true;
-	
-# here I would like to perform additional checks to perform game logic
-# that needs to happen when a voxel is removed
-func check_and_remove_voxel(voxel_block_def, voxel_position):
-	remove_voxel(voxel_position); 
-	
-	var above_position = voxel_position + Vector3(0, 1, 0);
-	var voxel_def_above = get_voxel_def_from_pos(above_position);
-	
-	# for now we check via geometry_type; but this
-	if (voxel_def_above.geometry_type == vdb.GEOMETRY_TYPE.Plant):
-		remove_voxel(above_position); 
-	
-	
-func find_crate_for_pos(pos):
-	pos = pos.floor();
-	for c in parent_container_crates.get_children():
-		if (c.global_transform.origin == pos):
-			return c;
-	return null;
+func connect_to_server(host: String):
+	var SocketClient = load("res://networking/SocketClient.gd");
+	socket_client = SocketClient.new();
 
+	socket_client.on("connect", self, "_on_connect");
+	socket_client.on("disconnect", self, "_on_disconnect");
+	socket_client.on("world_data", self, "load_world");
+	socket_client.on("add_player", self, "add_player");
+	socket_client.on("remove_player", self, "remove_player");
+	socket_client.on("position_player", self, "position_player");
+	socket_client.on("play_sfx", self, "play_sfx");
+	socket_client.on("crafting_status", self, "crafting_status");
+	socket_client.on("increment_destroy", self, "increment_destroy");
+	socket_client.on("remove_voxel", self, "remove_voxel");
+	socket_client.on("increment_build", self, "increment_build");
+	socket_client.on("add_voxel", self, "add_voxel");
+	socket_client.on("spawn_item", self, "spawn_item");
+	socket_client.on("delete_player_held_object", self, "delete_player_held_object");
+	socket_client.on("give_player_item", self, "give_player_item");
+	socket_client.on("player_grab_item", self, "player_grab_item");
+	socket_client.on("player_release_item", self, "player_release_item");
+	socket_client.on("take_from_crate", self, "player_take_from_crate");
+	socket_client.on("grab_from_inventory", self, "grab_from_inventory");
+	socket_client.on("move_to_inventory", self, "move_to_inventory");
+	socket_client.on("move_to_tool_slot", self, "player_hand_to_tool");
+	socket_client.on("move_tool_to_hand", self, "player_tool_to_hand");
+	socket_client.on("set_active_slot", self, "player_set_active_slot");
 
-func _get_item_name_from_held_obj(held_obj):
-	var item_name = "hand";
-	if (held_obj): 
-		var item_def = held_obj.get_item_def();
-		item_name = item_def.name;
-	return item_name;
+	socket_client.connect_to_host(host);
 
-func _get_toolgroups_from_held_obj(held_obj):
-	var tool_groups = [vdb.BYHAND];
-	if (held_obj): 
-		var item_def = held_obj.get_item_def();
-		tool_groups = item_def.can_mine_groups;
-		
-	return tool_groups;
+### message handlers
 
+func _on_connect():
+	pass;
 
-func compute_mining_results(voxel_block_def, held_obj):
-	var ret = [];
+func _on_disconnect():
+	_back_to_main_menu();
+
+func load_world(full_save_dictionary, players):
+	if full_save_dictionary.desc.game_version != vdb.GAME_VERSION_STRING:
+		socket_client.disconnect();
+		return;
+
+	parent_world.add_child(self);
+
+	vdb.load_world(full_save_dictionary);
+	vdb._set_player_position(vdb.main_world_generator.start_position);
+
+	for data in players:
+		var dummy = _player_dummy.instance();
+		parent_world.add_child(dummy);
+		user_dummy_by_uuid[data.uuid] = dummy;
+		dummy.load_player_data(data);
 	
-	var can_mine = false;
-	
-	# now check if we can actually collect it:
-	var tool_groups = _get_toolgroups_from_held_obj(held_obj);
-	if (!tool_groups): return ret;
-	var item_name = _get_item_name_from_held_obj(held_obj);
-		
-	for mg in voxel_block_def.mine_groups:
-		for tg in tool_groups:
-			if (tg == mg): can_mine = true;
+	var terrain = parent_world.terrain;
 
-	if (can_mine): 
-		if voxel_block_def.mine_results != null:
-			for mr in voxel_block_def.mine_results:
-				ret.append(vdb.get_def_from_name(mr));
-		else: # we just mine the actual block
-			ret.append(voxel_block_def);
-				
-		# check if we have special results for special mine items
-		if ("special_mine_items" in voxel_block_def && vdb.is_in_array(voxel_block_def.special_mine_items, item_name)):
-			for mr in voxel_block_def.special_mine_results:
-				ret.append(vdb.get_def_from_name(mr));
-		
-	
-	return ret;
+	#only after loading the stream is currently valid
+	terrain.stream = vdb.main_world_generator;
 
-# this is a basic way to add voxel destroyer logic with visualization
-func _add_attack_voxel(voxel_id, voxel_position, hit_position, held_obj, controller, is_physical):
-	if (!terrain.stream.world_check_can_mine(voxel_id)): return false;
+	# reattach terrain
+	parent_world.get_parent().add_child(terrain);
 	
+	move_player_into_terrain_after_load(terrain);
+	
+	socket_client.send_reliable("identify", [ uuid, preferences ]);
 
-	# check that a crate is empty for mining it
-	if (voxel_id == vdb.voxel_block_names2id.wooden_crate):
-		var c = find_crate_for_pos(hit_position);
-		if (c != null && c._item_counter > 0): return false;
+func add_player(player_uuid):
+	if uuid == player_uuid:
+		return;
+	
+	var dummy = _player_dummy.instance();
+	user_dummy_by_uuid[player_uuid] = dummy;
+	parent_world.add_child(dummy);
 
-	var voxel_block_def = vdb.voxel_block_defs[voxel_id];
+func remove_player(player_uuid):
+	if uuid == player_uuid:
+		return;
 	
-	if (!voxel_block_def.can_mine): return false;
-	if (voxel_block_def.mine_groups == null): return false;
+	user_dummy_by_uuid[player_uuid].queue_free();
+	user_dummy_by_uuid.erase(player_uuid);
+
+func position_player(player_uuid, left_hand_transform, right_hand_transform):
+	if player_uuid == uuid:
+		return;
 	
-	# here we check if the voxel_block has a specific definition of what tools
-	# can break it; if it is not breakable by the currently held tool we just
-	# return
-	var tool_groups = _get_toolgroups_from_held_obj(held_obj);
-	var can_break = true;
-	if (voxel_block_def.breakable_by_tool_groups != null):
-		can_break = false;
-		for mg in voxel_block_def.breakable_by_tool_groups:
-			for tg in tool_groups:
-				if (tg == mg): can_break = true;
-	if (!can_break): return false;
+	var player = user_dummy_by_uuid[player_uuid];
+	
+	if !player:
+		return;
+	
+	player.update_positions(left_hand_transform, right_hand_transform);
+
+func play_sfx(s, pos):
+	vdb._play_sfx(s, pos);
+
+func crafting_status(player_uuid, voxel_pos, success, is_physical):
+	var crafting_grid;
+
+	for cg in parent_container_crafting_grids.get_children():
+		if cg.global_transform.origin == voxel_pos:
+			crafting_grid = cg;
+
+	if !crafting_grid:
+		return;
+
+	crafting_grid.locked = false;
+
+	if success:
+		crafting_grid.queue_free();
+
+		vdb._play_sfx(vdb.sfx_craft_success, crafting_grid.transform.origin + Vector3.ONE / 2);
+
+		if uuid == player_uuid && is_physical:
+			vdb.global_statistics.crafted_items += 1;
 
 
-	# here we will need to compute the damage based on the tool used
-	var dig_damage = 1;
-	var hack_damage = 0;
-	var chop_damage = 1;
-	
-	var item_def = null;
-	if (held_obj != null): item_def = held_obj.get_item_def(); # returns null if it is not an item
-	
-	if (item_def != null):
-		dig_damage = item_def.dig_damage;
-		hack_damage = item_def.hack_damage;
-		chop_damage = item_def.chop_damage;
-	
-	var damage =   max(dig_damage - voxel_block_def.dig_resistance, 0) \
-				 + max(hack_damage - voxel_block_def.hack_resistance, 0) \
-				 + max(chop_damage - voxel_block_def.chop_resistance, 0);
-
-	if (damage <= 0): 
-		vdb._play_sfx(vdb.sfx_cant_mine, hit_position);
-		return true; # we still return true as we attacked it;
-		
-	if (!is_physical): damage *= 0.5;
-	
+func increment_destroy(voxel_position, hit_position, voxel_id, damage):
 	var destroy_node = null;
+
 	# search if we already have a node at the target position
 	for n in parent_container_destroy_voxel.get_children():
 		if (n.translation == voxel_position):
 			destroy_node = n;
 			break;
 	
-	
 	if (destroy_node == null):
+		var voxel_def = vdb.voxel_block_defs[voxel_id];
 		destroy_node = _destroy_voxel_node.instance();
-		destroy_node.initialize(voxel_position, hit_position, voxel_block_def);
+		destroy_node.initialize(voxel_position, hit_position, voxel_def);
 		parent_container_destroy_voxel.add_child(destroy_node);
-		
 	
-	# apply the actual damage now to the node; and check if it returns true
-	# which means the targeted voxel should be destroyed
-	if (destroy_node.increment_destroy(damage)):
-		check_and_remove_voxel(voxel_block_def, voxel_position);
-		if (is_physical): vdb.global_statistics.mined_blocks += 1;
+	return destroy_node.increment_destroy(damage);
+
+func remove_voxel(player_uuid, pos, is_physical):
+	if (uuid == player_uuid && is_physical):
+		vdb.global_statistics.mined_blocks += 1;
+	
+	_terrain_tool.channel = 0; #VoxelBuffer.CHANNEL_TYPE
+	_terrain_tool.value = 1;
+	_terrain_tool.mode = VoxelTool.MODE_REMOVE;
+	_terrain_tool.do_point(pos);
+	terrain.stream.persistence_change_voxel(pos, 0);
+
+func spawn_item(position, item_uuid, item_name):
+	var def = vdb.get_def_from_name(item_name);
+	var item = vdb.create_object_from_def(def);
+	item.uuid = item_uuid;
+	parent_world.add_child(item);
+	item.global_transform.origin = position;
+
+func increment_build(voxel_position, hit_position, voxel_id):
+	var build_node = null;
+
+	# search if we already have a node at the target position
+	for n in vdb.voxel_world_player.parent_container_build_voxel.get_children():
+		if (n.translation == voxel_position):
+			build_node = n;
+			break;
+	
+	# spawn a new build node if we did not finde one above
+	if (build_node == null):
+		if (!core.can_build_at_pos(voxel_position)):
+			return false;
 		
-		
-		
-		var mining_results = compute_mining_results(voxel_block_def, held_obj);
-		
-		if (mining_results):
-			for def in mining_results:
-				if (!auto_put_in_inventory || !_player_inventory.add_item_or_block_to_inventory(def)):
-					var thing = vdb.create_object_from_def(def);
-					parent_world.add_child(thing);
-					thing.global_transform.origin = hit_position;
-			
+		var voxel_def = vdb.voxel_block_defs[voxel_id];
+		build_node = _build_voxel_node.instance();
+		build_node.initialize(voxel_position, hit_position, voxel_def);
+		parent_container_build_voxel.add_child(build_node);
+	
+	return build_node.increment_build()
+
+func add_voxel(player_uuid, pos, voxel_id, is_physical):
+	if (uuid == player_uuid && is_physical):
+		vdb.global_statistics.build_blocks += 1;
+	
+	_terrain_tool.channel = 0; #VoxelBuffer.CHANNEL_TYPE
+	_terrain_tool.value = voxel_id;
+	_terrain_tool.mode = VoxelTool.MODE_ADD;
+	_terrain_tool.do_point(pos);
+	terrain.stream.persistence_change_voxel(pos, voxel_id)
+
+func delete_player_held_object(player_uuid, hand_name):
+	var player = core.get_player(player_uuid);
+	player.delete_held_object(hand_name);
+
+func give_player_item(player_uuid, item_name):
+	var player = core.get_player(player_uuid);
+	
+	var item_def = vdb.get_def_from_name(item_name);
+	
+	var slot = player.get_available_slot(item_def);
+
+	if slot == -1:
+		return false;
+	
+	player.give_item(item_def, slot);
 	return true;
 
+func player_grab_item(player_uuid, hand_name, item_uuid):
+	var player = core.get_player(player_uuid);
+
+	# todo: use a dictionary to store items by uuid
+
+	for crafting_grid in parent_container_crafting_grids.get_children():
+		for node in crafting_grid.grid_node_container.get_children():
+			var child = node.get_child(0);
+
+			if child && child.has_method("can_grab") && child.uuid == item_uuid:
+				node.remove_child(child);
+				parent_world.add_child(child);
+				player.grab_with(hand_name, child);
+				break;
+
+	for child in parent_world.get_children():
+		if child.has_method("can_grab") && child.uuid == item_uuid:
+			player.grab_with(hand_name, child);
+			break;
+
+func player_release_item(player_uuid, hand_name, final_transform):
+	var player = core.get_player(player_uuid);
+	
+	var item = player.release_with(hand_name);
+
+	if !item:
+		return;
+
+	item.global_transform = final_transform;
+	var voxel_pos = final_transform.origin.floor();
+	
+	var crate = core.find_crate_for_voxel_pos(voxel_pos);
+
+	if crate:
+		if crate.can_put(item):
+			crate.put_item(item);
+		else:
+			vdb._play_sfx(vdb.sfx_metal_footstep, final_transform.origin);
+		return;
+
+	_check_and_start_crafting(item);
+
+func player_take_from_crate(player_uuid, hand_name, voxel_pos, item_uuid):
+	var crate = core.find_crate_for_voxel_pos(voxel_pos);
+
+	if !crate:
+		return;
+
+	var item = crate.get_grab_object();
+
+	if !item:
+		return;
+
+	item.uuid = item_uuid;
+	core.get_player(player_uuid).grab_with(hand_name, item);
+
+func grab_from_inventory(player_uuid, hand_name, slot, item_uuid):
+	var player = core.get_player(player_uuid);
+
+	var item = player.take_item_from_slot(slot);
+
+	if !item:
+		return;
+
+	item.uuid = item_uuid;
+	player.grab_with(hand_name, item);
+
+func move_to_inventory(player_uuid, hand_name, slot):
+	var player = core.get_player(player_uuid);
+	
+	var item = player.release_with(hand_name);
+
+	if !item:
+		return;
+
+	item.queue_free();
+
+	player.give_item(item.get_def(), slot);
+
+func player_hand_to_tool(player_uuid, hand_name, slot):
+	var player = core.get_player(player_uuid);
+	player.move_held_item_to_tool_slot(hand_name, slot);
+
+func player_tool_to_hand(player_uuid, slot, hand_name):
+	var player = core.get_player(player_uuid);
+	player.move_tool_to_hand(slot, hand_name);
+
+func player_set_active_slot(player_uuid, slot):
+	var player = core.get_player(player_uuid);
+	player.set_active_slot(slot);
+
+### requests
+
+func _attempt_craft(voxel_pos, hand_name, is_physical):
+	if socket_client:
+		socket_client.send_reliable("attempt_craft", [ voxel_pos, hand_name, is_physical ]);
+	else:
+		core.player_craft_with(uuid, voxel_pos, hand_name, is_physical);
+
+func _attempt_break(voxel_pos, pos, hand_name, is_physical):
+	if socket_client:
+		socket_client.send_reliable("attempt_break", [ voxel_pos, pos, hand_name, is_physical ]);
+	else:
+		core.attempt_break(uuid, preferences, voxel_pos, pos, hand_name, is_physical);
+
+func _attempt_build(voxel_pos, pos, hand_name, is_physical):
+	if socket_client:
+		socket_client.send_reliable("attempt_build", [ voxel_pos, pos, hand_name, is_physical ]);
+	else:
+		core.attempt_build(uuid, voxel_pos, pos, hand_name, is_physical);
+
+func _creative_build(voxel_pos, voxel_id):
+	if socket_client:
+		socket_client.send_reliable("creative_build", [ voxel_pos, voxel_id ]);
+	else:
+		core.add_voxel(uuid, voxel_pos, voxel_id, false);
+
+func _creative_destroy(voxel_pos):
+	if socket_client:
+		socket_client.send_reliable("creative_destroy", [ voxel_pos ]);
+	else:
+		core.remove_voxel(uuid, voxel_pos, false);
+
+func _send_positions():
+	if socket_client:
+		socket_client.send("position_player", [
+			vr.leftController.get_grab_transform(),
+			vr.rightController.get_grab_transform()
+		]);
+	else:
+		core.update_player_positions(
+			uuid,
+			vr.leftController.get_grab_transform(),
+			vr.rightController.get_grab_transform()
+		);
+
+func send_active_slot(slot):
+	if socket_client:
+		socket_client.send_reliable("set_active_slot", [ slot ]);
+	else:
+		core.set_player_active_slot(uuid, slot);
+
+func request_grab(hand_name, item_uuid):
+	if socket_client:
+		socket_client.send_reliable("grab_item", [ hand_name, item_uuid ]);
+	else:
+		core.player_grab_item(uuid, hand_name, item_uuid);
+
+func request_from_crate(hand_name, crate_position):
+	if socket_client:
+		socket_client.send_reliable("grab_from_crate", [ hand_name, crate_position ]);
+	else:
+		core.player_take_from_crate(uuid, hand_name, crate_position);
+
+func request_from_inventory(hand_name, slot):
+	if socket_client:
+		socket_client.send_reliable("grab_from_inventory", [ hand_name, slot ]);
+	else:
+		core.player_grab_from_inventory(uuid, hand_name, slot);
+
+func request_move_to_inventory(hand_name, slot):
+	if socket_client:
+		socket_client.send_reliable("move_to_inventory", hand_name, slot);
+	else:
+		core.move_to_inventory(uuid, hand_name, slot);
+
+func request_move_to_tool_slot(hand_name, slot):
+	if socket_client:
+		socket_client.send_reliable("move_to_tool_slot", hand_name, slot);
+	else:
+		core.move_to_tool_slot(uuid, hand_name, slot);
+
+func request_tool_to_hand(slot, hand_name):
+	if socket_client:
+		socket_client.send_reliable("move_tool_to_hand", slot, hand_name);
+	else:
+		core.move_tool_to_hand(uuid, slot, hand_name);
+
+func request_release(hand_name, final_transform):
+	if socket_client:
+		socket_client.send_reliable("release_grab", [ hand_name, final_transform ]);
+	else:
+		core.player_release_item(uuid, hand_name, final_transform);
+
+
+### core Player interface
+
+func gen_player_data():
+	var data = {
+		uuid = uuid,
+		inventory = _player_inventory.get_save_dictionary(),
+		toolbelt_left = null,
+		toolbelt_right = null,
+		hand_left = null,
+		hand_right = null
+	};
+
+	var toolbelt_left = _player_toolbelt.slots.left.get_slot_object();
+
+	if(toolbelt_left):
+		data.toolbelt_left = {
+			uuid = toolbelt_left.uuid,
+			name = toolbelt_left.get_def().name
+		};
+
+	var toolbelt_right = _player_toolbelt.slots.right.get_slot_object();
+
+	if(toolbelt_right):
+		data.toolbelt_right = {
+			uuid = toolbelt_right.uuid,
+			name = toolbelt_right.get_def().name
+		};
+
+	var left_held_object = get_held_object('left');
+
+	if(left_held_object):
+		data.hand_left = {
+			uuid = left_held_object.uuid,
+			name = left_held_object.get_def().name
+		};
+
+	var right_held_object = get_held_object('right');
+
+	if(right_held_object):
+		data.hand_right = {
+			uuid = right_held_object.uuid,
+			name = right_held_object.get_def().name
+		};
+
+	return data;
+
+func grab_with(hand_name, item):
+	var controller = _get_controller(hand_name);
+	var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
+	obj_grabber.held_object = item.get_grab_object(controller);
+	controller.visible = false;
+
+func release_with(hand_name):
+	var controller = _get_controller(hand_name);
+	var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
+	var item = obj_grabber.held_object;
+	obj_grabber.release_grab();
+	
+	if item:
+		item.visible = true;
+
+	return item;
+
+func get_held_object(hand_name):
+	var controller = _get_controller(hand_name);
+	var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
+	
+	if (obj_grabber):
+		return obj_grabber.held_object;
+	else:
+		return null;
+
+func _get_controller(hand_name):
+	if hand_name == "left":
+		return vr.leftController;
+	else:
+		return vr.rightController;
+
+func delete_held_item(hand_name):
+	var controller = _get_controller(hand_name);
+	var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
+	obj_grabber.delete_held_object();
+
+func give_item(item_def, slot):
+	_player_inventory.add_item_to_slot(item_def, slot);
+
+func get_available_slot(voxel_or_item_def):
+	return _player_inventory.get_available_slot(voxel_or_item_def);
+
+func move_held_item_to_tool_slot(hand_name, slot_name):
+	var item = release_with(hand_name);
+	
+	_player_toolbelt.slots[slot_name].put_item(item);
+
+func move_tool_to_hand(slot_name, hand_name):
+	var item = _player_toolbelt.slots[slot_name].get_slot_object();
+
+	item.get_parent().remove_child(item);
+	parent_world.add_child(item);
+
+	grab_with(hand_name, item);
+
+func take_item_from_slot(slot):
+	return _player_inventory.take_item_from(slot);
+
+func set_active_slot(slot):
+	_player_inventory._active_inventory_slot = slot;
+	_player_inventory.update_active_item();
+
+###
 
 func _is_a_crafting_voxel(vid):
 	if (vid == vdb.voxel_block_names2id.tree): return true;
@@ -277,49 +576,24 @@ func _check_and_start_crafting(held_object):
 			parent_container_crafting_grids.add_child(cg);
 			cg.global_transform.origin = pos.floor();
 			cg.check_craft_place(held_object);
-			
-			
-func _check_and_put_in_container(held_object):
-	var pos = held_object.global_transform.origin.floor();
-	var vid = get_voxel_id_from_pos(pos);
-	
-	if (vid == vdb.voxel_block_names2id.wooden_crate):
-		var crate = find_crate_for_pos(pos);
-		#hmm; slow... we should add a method to get actually world objects
-
-		if (crate == null):
-			crate = load("res://dynamic_objects/Container_Crate.tscn").instance();
-			crate.global_transform.origin = pos;
-			parent_container_crates.add_child(crate);
-			
-		if (crate.check_and_put_in_crate(held_object)):
-			held_object.visible = false;
-			held_object.queue_free();
-			vr.log_info("Put something in the crate!")
-			return true;
-		else:
-			var dir = vr.vrCamera.global_transform.origin - held_object.global_transform.origin;
-			held_object.global_transform.origin += dir * 0.5;
-	
-	return false;
 
 # for now we assume that all grabbable objects are an area. This might fail in the future
 # and then needs some rethinking/factoring
-func _on_ObjectGrabber_grab_released_held_object(held_object : Spatial):
-	if (held_object == null): return;
-	
-	if _player_toolbelt.check_and_put_in_toolbelt(held_object):
+func _on_ObjectGrabber_grab_released_held_object(hand_name, held_object : Spatial):
+	if _player_toolbelt.slots.left.can_put(held_object):
+		request_move_to_tool_slot(hand_name, "left");
 		return;
 
-	if _player_inventory.check_and_put_in_inventory(held_object):
-		held_object.visible = false;
-		held_object.queue_free();
+	if _player_toolbelt.slots.right.can_put(held_object):
+		request_move_to_tool_slot(hand_name, "right");
 		return;
-		
-	if (_check_and_put_in_container(held_object)):
+
+	if _player_inventory.can_put(held_object):
+		var slot = get_available_slot(held_object.get_def());
+		request_move_to_inventory(hand_name, slot);
 		return;
-		
-	_check_and_start_crafting(held_object);
+
+	request_release(hand_name, held_object.global_transform);
 
 
 func get_voxel_id_from_pos(pos):
@@ -338,19 +612,10 @@ func debug_axis(global_pos):
 	parent_world.add_child(axis);
 	axis.global_transform.origin = global_pos;
 
-
-func get_held_object(controller):
-	var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
-	if (obj_grabber):
-		return obj_grabber.held_object;
-	else:
-		return null;
-	
-
-func get_interaction_points(controller):
-	var obj = get_held_object(controller);
+func get_interaction_points(controller, hand_name):
+	var obj = get_held_object(hand_name);
 	var ret = []; #!!TOOPT: do we need to optimize this??
-	if (obj != null):
+	if obj:
 		var hpc : Spatial = obj.get_hit_point_collection_node();
 		if (hpc.get_child_count() == 0): vr.log_warning("No interaction point on item defined");
 		else:
@@ -363,25 +628,25 @@ func get_interaction_points(controller):
 
 
 # this function uses (and resets) hit_start_point
-func check_attack_voxel(pos: Vector3, _speed, controller, is_physical):
-	var held_obj = get_held_object(controller);
+func check_attack_voxel(pos: Vector3, _speed, hand_name, is_physical):
+	var held_obj = get_held_object(hand_name);
+
+	var voxel_pos = pos.floor();
 
 	# check if we are hitting a crafting area
 	for cg in parent_container_crafting_grids.get_children():
-		if (cg.perform_craft(pos, controller, held_obj, is_physical)): 
+		if (cg.can_attempt_craft(pos)):
+			if cg.attempt_craft(hand_name, is_physical):
+				_attempt_craft(voxel_pos, hand_name, is_physical);
 			return true;
+	
+	if (held_obj && held_obj.get_voxel_def() && core.can_build_at_pos(voxel_pos)):
+		_attempt_build(voxel_pos, pos, hand_name, is_physical)
+		return true;
 
-	var voxel_pos = pos.floor();
-	var voxel_id = _terrain_tool.get_voxel(voxel_pos);
-	
-	#if (voxel_id == 0): # air
-	if (_voxel_id_valid_for_head(voxel_id)):
-		# TODO: we need to check if we can build here
-		if (_add_build_voxel(voxel_id, voxel_pos, pos, held_obj, controller, is_physical)):
-			return true;
-	
-	if (voxel_id != 0): # air
-		return _add_attack_voxel(voxel_id, voxel_pos, pos, held_obj, controller, is_physical);
+	if (core.can_break(voxel_pos, held_obj)):
+		_attempt_break(voxel_pos, pos, hand_name, is_physical);
+		return true;
 	
 	return false;
 	
@@ -398,7 +663,7 @@ var _hit_traveld_distance  = [0.0, 0.0, 0.0];
 var _time_since_last_attack_voxel = 0.0;
 const _min_time_between_attack = 0.5;
 
-func _controller_hit_move_detection(controller : ARVRController):
+func _controller_hit_move_detection(controller : ARVRController, hand_name: String):
 	
 	if (controller.is_hand):
 		_hit_min_speed = 1.0;
@@ -418,7 +683,7 @@ func _controller_hit_move_detection(controller : ARVRController):
 	if (_time_since_last_attack_voxel < _min_time_between_attack): return;
 	
 	#var controller_position = get_interaction_point(controller);
-	var interaciton_points = get_interaction_points(controller);
+	var interaciton_points = get_interaction_points(controller, hand_name);
 	
 	# This logic tries to detect the start point of a swing by marking the point the controller
 	# goes over a specific speed threshold
@@ -433,17 +698,17 @@ func _controller_hit_move_detection(controller : ARVRController):
 	for point in interaciton_points:
 	
 		if (!vr.inVR && controller._button_pressed(vr.CONTROLLER_BUTTON.INDEX_TRIGGER)):
-			if (check_attack_voxel(point, null, controller, false)):
+			if (check_attack_voxel(point, null, hand_name, false)):
 				_time_since_last_attack_voxel = 0.0;
 			return;
 			
 		if (!(vdb.game_mode == vdb.GAME_MODE.SPORTIVE) && controller._button_pressed(vr.CONTROLLER_BUTTON.XA)):
-			if (check_attack_voxel(point, null, controller, false)):
+			if (check_attack_voxel(point, null, hand_name, false)):
 				_time_since_last_attack_voxel = 0.0;
 			return;
 		
-		if (_hit_traveld_distance[controller.controller_id]  > _hit_min_dist):
-			if (check_attack_voxel(point, controller_speed, controller, true)):
+		if (_hit_traveld_distance[controller.controller_id] > _hit_min_dist):
+			if (check_attack_voxel(point, controller_speed, hand_name, true)):
 				_hit_traveld_distance[controller.controller_id] = 0.0;
 				_time_since_last_attack_voxel = 0.0;
 
@@ -622,11 +887,11 @@ func _creative_mode_update_controller_world_interaction(controller, isAdd, show)
 		if (isAdd):
 			m.global_transform.origin = pv.previous_position + Vector3(0.5, 0.5, 0.5);
 			if (controller._button_just_pressed(vr.CONTROLLER_BUTTON.INDEX_TRIGGER)):
-				add_voxel(pv.previous_position, _cm_ui.get_selected_voxel_id())
+				_creative_build(pv.previous_position, _cm_ui.get_selected_voxel_id());
 		else:
 			m.global_transform.origin = pv.position + Vector3(0.5, 0.5, 0.5);
 			if (controller._button_just_pressed(vr.CONTROLLER_BUTTON.INDEX_TRIGGER)):
-				remove_voxel(pv.position)
+				_creative_destroy(pv.position);
 	else:
 		m.visible = false;
 
@@ -696,9 +961,22 @@ func _check_and_process_creative_mode(dt):
 
 
 func _back_to_main_menu():
-	_save_all();
-	get_parent().remove_child(self); # we need to remove vdb.voxel_world_player 
+	if socket_client:
+		socket_client.disconnect_from_host();
+		socket_client = null;
+
+	if core.server:
+		core.stop_server();
+
+	user_dummy_by_uuid = {};
+
+	var parent = get_parent();
+
+	if parent:
+		parent.remove_child(self); # we need to remove vdb.voxel_world_player 
+	
 	terrain = null;
+
 	vr.switch_scene("res://levels/MainMenuRoom.tscn", 0.0, 0.0);
 	
 onready var _ingame_menu = $HUD/IngameMenu_3DScene;
@@ -759,13 +1037,11 @@ func _physics_process(dt):
 		$HUD/ArmUserInterface._check_and_process_process(dt);
 
 
-	_controller_hit_move_detection(vr.rightController);
-	_controller_hit_move_detection(vr.leftController);
-	
+	_controller_hit_move_detection(vr.rightController, "right");
+	_controller_hit_move_detection(vr.leftController, "left");
 	
 	_update_ui_raycasts_visibility();
 
-	
 	
 	var play_step_sound = false;
 	
@@ -974,7 +1250,7 @@ func initialize_voxel_world_player():
 	persisted_nodes_array.append(_player_toolbelt);
 
 	vdb.add_gamplay_settings_change_listener(self);
-	
+
 
 func set_player_parent_world(_parent):
 	if (vdb.voxel_world_player != self):
@@ -984,7 +1260,6 @@ func set_player_parent_world(_parent):
 	if (get_parent() != null): get_parent().remove_child(self);
 	
 	parent_world = _parent;
-	parent_world.add_child(vdb.voxel_world_player);
 
 	parent_container_build_voxel = _parent.find_node("Container_BuildVoxel");
 	parent_container_destroy_voxel = _parent.find_node("Container_DestroyVoxel");

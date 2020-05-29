@@ -1,5 +1,6 @@
 extends Spatial
 
+var slots = {}
 
 func get_save_dictionary() -> Dictionary:
 	var ret = {
@@ -42,17 +43,10 @@ func apply_save_dictionary(r : Dictionary):
 			if (slot == null):
 				vr.log_error("Non-existing item slot for tool in toolbelt");
 			else:
-				slot.check_and_put_in_toolbelt_slot(obj);
+				slot.put_item(obj);
 			
 		else:
 			vr.log_error("Could not load object from " + str(item));
-
-
-func check_and_put_in_toolbelt(held_obj):
-	for slot in $Slots.get_children():
-		if slot.check_and_put_in_toolbelt_slot(held_obj):
-			return true;
-	return false;
 
 
 func _physics_process(_dt):
@@ -60,4 +54,5 @@ func _physics_process(_dt):
 	global_transform.origin.y -= vr.get_current_player_height() * 0.5;
 
 func _ready():
-	pass # Replace with function body.
+	for slot in $Slots.get_children():
+		slots[slot.name] = slot;

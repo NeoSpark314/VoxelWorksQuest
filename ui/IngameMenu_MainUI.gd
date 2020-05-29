@@ -32,7 +32,8 @@ func _on_Game_Save_Button_pressed():
 
 
 func _on_Game_ExitToMainMenu_Button_pressed():
-	_game_status_label.text = "Saveing & leaving game...";
+	_game_status_label.text = "Saving & leaving game...";
+	vdb.voxel_world_player._save_all();
 	vdb.voxel_world_player._back_to_main_menu();
 
 
