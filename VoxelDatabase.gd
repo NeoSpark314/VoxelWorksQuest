@@ -1,8 +1,8 @@
 extends Node
 
 # Increment this immediately after release
-const GAME_VERSION_STRING = "0.3.10";
-const GAME_NAME = "Voxel Works Quest";
+const GAME_VERSION_STRING = "0.3.11_dev";
+const GAME_NAME = "Voxel Works Quest Dev";
 
 const VOXEL_TEXTURE_ATLAS_SIZE = 32;
 
@@ -1689,6 +1689,8 @@ func _create_item_mesh_from_def(item_def) -> MeshInstance:
 	
 	# we create the mesh here with the collision shape
 	mesh.create_mesh_from_imagedata(_item_image_data, px, py, sx, sy, _item_mesh_size_scale, grab_pos, true);
+	
+	mesh.rotate_x(deg2rad(45));
 	
 	mesh.name = "mesh";
 	return mesh;

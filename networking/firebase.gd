@@ -1,6 +1,6 @@
 extends Node
 
-var API_KEY : String = preload("app_id.gd").new().id;
+var API_KEY : String = "";
 const PROJECT_ID := "voxel-works-quest";
 
 
@@ -16,6 +16,14 @@ var user_info := {
 	"token": null,
 	"id": "no_user_id"
 }
+
+func _ready():
+	var app = load("app_id.gd");
+	if (app):
+		API_KEY = app.new().id;
+		vr.log_info("Successfully loaded Firebase API_KEY");
+	else:
+		vr.log_warning("Firebase API_KEY is not available; login will not be possible.");
 
 func is_user_logged_in():
 	return user_info.token != null;

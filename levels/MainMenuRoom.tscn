@@ -28,6 +28,7 @@ script = ExtResource( 1 )
 ui_raycast_visible_button = -1
 
 [node name="Feature_VRSimulator" parent="OQ_ARVROrigin" instance=ExtResource( 10 )]
+info_label_visible = false
 
 [node name="ChangeLogLabel" parent="." instance=ExtResource( 7 )]
 transform = Transform( -2, 0, -3.01992e-07, 0, 2, 0, 3.01992e-07, 0, -2, 0, 1.6, 1 )
