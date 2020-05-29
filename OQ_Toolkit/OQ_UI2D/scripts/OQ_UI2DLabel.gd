@@ -17,7 +17,7 @@ export var transparent := false;
 
 onready var ui_label : Label = $Viewport/ColorRect/CenterContainer/Label
 onready var ui_container : CenterContainer = $Viewport/ColorRect/CenterContainer
-onready var ui_color_rect : CenterContainer = $Viewport/ColorRect
+onready var ui_color_rect : ColorRect = $Viewport/ColorRect
 onready var ui_viewport : Viewport = $Viewport
 onready var mesh_instance : MeshInstance = $MeshInstance
 var ui_mesh : PlaneMesh = null;

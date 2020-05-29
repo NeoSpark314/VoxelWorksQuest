@@ -55,6 +55,8 @@ var startup_settings = {}
 
 func reset_startup_settings():
 	startup_settings = {
+		host = false, # whether or not to start a server
+		remote_host = null, # ip string
 		load_game = true,
 		save_file_infix = "noname",
 		world_dict = null, # if this is != null the world will be loaded from this dicitonary
@@ -1576,10 +1578,7 @@ func check_and_get_crafting_recipe(craft_grid_defs : Array, crafting_bench_voxel
 	return null;
 
 
-func peform_crafting(craft_grid_defs : Array, crafting_bench_voxel_def, held_object):
-	var ret = null;
-	
-	
+func perform_crafting(craft_grid_defs : Array, crafting_bench_voxel_def, held_object):
 	var recipe = check_and_get_crafting_recipe(craft_grid_defs, crafting_bench_voxel_def);
 	
 	if (recipe != null):
@@ -1592,21 +1591,8 @@ func peform_crafting(craft_grid_defs : Array, crafting_bench_voxel_def, held_obj
 			# now we check if the held object tool troups are fulfilling the tool requirements
 			if (!is_one_of_in_array(item_def.tool_groups, recipe.tool_requirements)):
 				return null;
-		
-		
-		ret = [];
-		vr.log_info("Crafting " + str(recipe.output));
-		for out in recipe.output:
-			var def = names2blockORitem_def[out];
-			if (def == null):
-				vr.log_error("check_crafting(): Resulting Craft Item " + out + " does not exist!!");
-			else:
-				if is_voxel_block_definition(def): ret.append(create_voxelblock_object_from_def(def));
-				elif is_item_definition(def): ret.append(create_item_object_from_def(def));
-				else:
-					vr.log_error("heck_crafting(): unknown def: " + str(def));
-	
-	return ret;
+
+	return recipe.output;
 
 onready var voxel_material : SpatialMaterial = preload("res://data/VoxelMaterial.tres");
 onready var voxel_material_transparent : SpatialMaterial = preload("res://data/VoxelMaterial_Transparent.tres");
@@ -1940,27 +1926,53 @@ func _set_player_position(pos):
 	# now set the origin in a way that the camera position is exactly the same as saved
 	vr.vrOrigin.global_transform.origin = pos + delta_origin;
 
-	
-func _apply_save_dictionary(full_save_dictionary):
+func load_player_position(full_save_dictionary):
 	var desc = full_save_dictionary.desc;
-	var data = full_save_dictionary.data;
+
 	if (!vr.inVR):
 		vr.vrOrigin.global_transform.origin = _arr_to_vec3(desc.vrOrigin_position);
 		vr.vrCamera.global_transform.origin = _arr_to_vec3(desc.vrCamera_position);
 		vr.vrCamera.global_transform.basis = _arr_to_basis(desc.vrCamera_orientation);
 	else:
 		_set_player_position(_arr_to_vec3(desc.vrCamera_position));
-		
+
+func load_world(full_save_dictionary):
+	load_meta(full_save_dictionary.desc);
+	load_saved_nodes(full_save_dictionary);
+	load_terrain(full_save_dictionary);
+
+func load_meta(desc):
+	if (desc.has("casual_mode")): # legacy loading before introducing game mode
+		if (desc.casual_mode): game_mode = GAME_MODE.STANDARD;
+		else: game_mode = GAME_MODE.SPORTIVE;
+	else:
+		game_mode = desc.game_mode;
+	world_name = desc.world_name;
+	
+	if (desc.has("world_uuid")):
+		world_uuid = desc.world_uuid;
+	else:
+		world_uuid = gen_uuid();
+
+func load_terrain(full_save_dictionary):
+	# this is the actual saved data from the terrain generator
+	var persisted_blocks = full_save_dictionary.data.block_data;
+	var generator_seed = full_save_dictionary.desc.terrain_generator_seed;
+	main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
+	main_world_generator.initialize(generator_seed, persisted_blocks);
+
+func load_saved_nodes(full_save_dictionary):
+	var data = full_save_dictionary.data;
+
 	for k in data.saved_nodes:
 		var node = get_node(NodePath(k));
 		if (node == null):
-			vr.log_error("vdb._apply_save_dictionary(): could not find node " + k);
+			vr.log_error("vdb.load_saved_nodes(): could not find node " + k);
 			continue;
 		if (!node.has_method("apply_save_dictionary")):
-			vr.log_error("vdb.func _apply_save_dictionary(r):(): Object " + str(node) + " has no apply_save_dictionary() method.");
+			vr.log_error("vdb.func load_saved_nodes(r):(): Object " + str(node) + " has no apply_save_dictionary() method.");
 			continue;
 		node.apply_save_dictionary(data.saved_nodes[k]);
-
 
 func _apply_loaded_dictionary(target, loaded):
 	if (!loaded):
@@ -2088,46 +2100,30 @@ func persistence_save_game(_persisted_nodes_array : Array):
 
 
 func _loadandplay_game_dict(r):
-	var persisted_blocks = null;
-	var generator_seed = startup_settings.generator_seed; # default seed
 	game_mode = startup_settings.game_mode;
 	world_name = startup_settings.world_name;
 	world_uuid = startup_settings.world_uuid;
 
-	if ((r != null) && (r.desc == null || r.data == null)):
+	if !r:
+		main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
+		main_world_generator.initialize(startup_settings.generator_seed, {});
+	elif ((r != null) && (r.desc == null || r.data == null)):
 		vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
-	elif (r != null):
-		if (r.desc.stream_version != CURRENT_SAVE_STREAM_VERSION):
-			vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix + " Wrong stream version: got %d; expected %d" % [r.desc.stream_version, CURRENT_SAVE_STREAM_VERSION])
-		else:
-			_apply_save_dictionary(r);
+		main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
+		main_world_generator.initialize(0, {});
+	elif (r.desc.stream_version != CURRENT_SAVE_STREAM_VERSION):
+		vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + current_save_file_infix + " Wrong stream version: got %d; expected %d" % [r.desc.stream_version, CURRENT_SAVE_STREAM_VERSION])
+		main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
+		main_world_generator.initialize(0, {});
+	else:
+		load_player_position(r);
+		load_world(r);
 
-			# this is the actual saved data from the terrain generator
-			persisted_blocks = r.data.block_data;
-			
-			generator_seed = r.desc.terrain_generator_seed;
-			#TODO: load generator here
-			
-			if (r.desc.has("casual_mode")): # legacy loading before introducing game mode
-				if (r.desc.casual_mode): game_mode = GAME_MODE.STANDARD;
-				else: game_mode = GAME_MODE.SPORTIVE;
-			else:
-				game_mode = r.desc.game_mode;
-			world_name = r.desc.world_name;
-			
-			if (r.desc.has("world_uuid")):
-				world_uuid = r.desc.world_uuid;
-			else:
-				world_uuid = gen_uuid();
-
-			vr.log_info("Loaded game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
+		vr.log_info("Loaded game from " + OS.get_user_data_dir() + "/" + current_save_file_infix);
 
 	# now we remember the session start statistis; this assumes that we will always
 	# call load_game() at the start of a session :
 	session_start_statistics = get_global_statistics_copy();
-	
-	main_world_generator = load("scripts/TerrainGenerator_V1.gd").new();
-	main_world_generator.initialize(generator_seed, persisted_blocks);
 	
 		# reset the start position if requested
 	if (!startup_settings.load_game || startup_settings.reset_start_position):
@@ -2219,7 +2215,8 @@ static func gen_uuid():
 #		if (r.stream_version != CURRENT_SAVE_STREAM_VERSION):
 #			vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + filename + " Wrong stream version: got %d; expected %d" % [r.stream_version, CURRENT_SAVE_STREAM_VERSION])
 #		else:
-#			_apply_save_dictionary(r);
+#			load_player_position(r);
+#			load_saved_nodes(r);
 #			vr.log_info("Loaded game from " + OS.get_user_data_dir() + "/" + filename);
 #	else:
 #		vr.log_error("Could not load game from " + OS.get_user_data_dir() + "/" + filename);

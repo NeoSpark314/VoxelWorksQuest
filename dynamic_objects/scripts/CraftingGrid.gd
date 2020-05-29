@@ -4,6 +4,8 @@ const grid_size = 3;
 
 onready var area : Area = $Area;
 
+var locked = false;
+
 var _time_until_reset = 2.0;
 var _reset_counter = 0.0;
 
@@ -17,6 +19,7 @@ var is_furnace = false;
 var furnace_burn_timer = 0.0;
 var furnace_max_burn_time = 1.0;
 
+onready var grid_node_container = $GridNodes;
 onready var indicator_valid = $CraftIndicator/CraftIndicatorValid;
 onready var indicator_invalid = $CraftIndicator/CraftIndicatorInvalid;
 
@@ -37,18 +40,18 @@ func initialize_crafting_grid(vid):
 # as grids do not save semselves
 func get_all_objects_in_grid() -> Array:
 	var ret = [];
-	for i in $GridNodes.get_children():
+	for i in grid_node_container.get_children():
 		var c= i.get_child(0);
 		if (c): ret.append(c);
 	return ret;
 	
 	
-func _compute_craft_grid_def():
+func compute_craft_grid_def():
 	var grid = [];
 	grid.resize(grid_size * grid_size);
 	# create the name grid
 	for i in range(0, grid.size()):
-		var c = $GridNodes.get_child(i).get_child(0);
+		var c = grid_node_container.get_child(i).get_child(0);
 		if (c): 
 			grid[i] = c.get_def(); 
 		else: 
@@ -56,83 +59,55 @@ func _compute_craft_grid_def():
 	
 	return grid;
 
-
-func _craft_it(held_object):
-	
-	var grid = _compute_craft_grid_def();
-	
-	var crafted_objects = vdb.peform_crafting(grid, crafting_grid_voxel_def, held_object);
-	
-	if (crafted_objects == null): return false;
-	
-	
-	# distribute the crafed objects along the grid and attach them
-	# to the scene root
-	var count = 0;
-	for obj in crafted_objects:
-		get_parent().get_parent().add_child(obj);
-		obj.global_transform = $GridNodes.get_child(count).global_transform;
-		obj.scale = Vector3(1,1,1); # why is this necessary?
-		
-		print(obj);
-		print(obj.global_transform);
-		
-		count = count + 1;
-	
-	
-	return true;
-	
-	
-func _remove_self():
-	self.visible = false;
-	self.get_parent().remove_child(self);
-	self.queue_free(); # will delete also all blocks attached
-	
 func check_pos_in_craft_area(pos):
 	var p = global_transform.origin;
 	if (p.x > pos.x || p.y > pos.y || p.z > pos.z ||
 		(p.x+1) < pos.x || (p.y+1) < pos.y || (p.z+1) < pos.z): return false;
 	return true;
 	
+func can_attempt_craft(global_pos):
+	if (locked):
+		return false;
 
-func perform_craft(global_pos, controller, held_object, is_physical):
-	if (is_furnace): return;
+	if (is_furnace):
+		return false;
 	
 	if (crafting_grid_voxel_def == null):
 		vr.log_error("Invalid voxel_block_defs in CraftingGrid.gd");
 		return false;
 	
 	# manual check here...
-	if (!check_pos_in_craft_area(global_pos)): return false;
-		
+	if (!check_pos_in_craft_area(global_pos)):
+		return false;
+	return true;
+
+func attempt_craft(held_object, is_physical):
 	#print("PLING");
 	_reset_counter = 0.0;
 	_build_step = _build_step + 1;
 
+	var sound_position = global_transform.origin + Vector3.ONE / 2;
+
 	if _build_step >= _num_build_steps:
-		if (_craft_it(held_object)):
-			vdb._play_sfx(vdb.sfx_craft_success, controller.get_palm_transform().origin);
-			_remove_self();
-			if (is_physical): vdb.global_statistics.crafted_items += 1;
+		if (_is_valid_recipe):
+			locked = true;
+			return true;
 		else:
 			#vr.log_info("Unknown crafting recipie");
-			vdb._play_sfx(vdb.sfx_craft_fail, controller.get_palm_transform().origin);
+			vdb._play_sfx(vdb.sfx_craft_fail, sound_position);
 			_build_step = 0;
 	else:
-		
 		if ("sfx_craft_steps" in crafting_grid_voxel_def):
-			vdb._play_sfx(crafting_grid_voxel_def.sfx_craft_steps, controller.get_palm_transform().origin);
+			vdb._play_sfx(crafting_grid_voxel_def.sfx_craft_steps, sound_position);
 		else:
-			vdb._play_sfx(vdb.sfx_craft_steps, controller.get_palm_transform().origin);
-
-	
-	return true;
+			vdb._play_sfx(vdb.sfx_craft_steps, sound_position);
+	return false;
 
 
 func _get_closest_grid_position(obj):
 	var min_dist = 1000.0;
 	var min_g = null;
-	for g in $GridNodes.get_children():
+	for g in grid_node_container.get_children():
 		if (g.get_child_count() > 0): continue; # already occupied
 		var dist = (g.global_transform.origin - obj.global_transform.origin).length();
 		if (dist < min_dist):
@@ -193,7 +168,7 @@ func _check_and_update_valid():
 	print("checking if recipe is valid");
 	# now we check if it is a valid recipe and set the propper one visible
 	# NOTE: all this might at some point be really compute intensive
-	var grid = _compute_craft_grid_def();
+	var grid = compute_craft_grid_def();
 	
 	var recipe = vdb.check_and_get_crafting_recipe(grid, crafting_grid_voxel_def);
 	
@@ -228,7 +203,7 @@ func _ready():
 	for y in range(0, grid_size):
 		for x in range(0, grid_size):
 			var g = Spatial.new();
-			$GridNodes.add_child(g);
+			grid_node_container.add_child(g);
 			var px = (x+0.5) / float(grid_size);
 			var py = (y+0.5) / float(grid_size);
 			var pz = 0.5;
@@ -254,7 +229,7 @@ func _process(_dt):
 	
 	var num_objects_in_grid = 0;
 	var c = 0;
-	for g in $GridNodes.get_children():
+	for g in grid_node_container.get_children():
 		g.rotation.y = time + c;
 		c = c + 1;
 		
@@ -266,7 +241,7 @@ func _process(_dt):
 		
 	# here we remove ourself again when no object is placed
 	if (num_objects_in_grid == 0 && _no_object_timer > 2.0):
-		_remove_self();
+		queue_free();
 	elif (num_objects_in_grid > 0):
 		_no_object_timer = 0;
 		
@@ -276,10 +251,8 @@ func _process(_dt):
 			$Animated_Fire.scale.y = 1.0 - (furnace_max_burn_time - furnace_burn_timer)/furnace_max_burn_time;
 			if (!$Fire_Sound.playing): $Fire_Sound.play();
 			furnace_burn_timer -= _dt;
-			if (furnace_burn_timer <= 0.0):
-				_craft_it(null);
-				vdb._play_sfx(vdb.sfx_craft_success, $Area.global_transform.origin);
-				_remove_self();
+			if (furnace_burn_timer <= 0.0 && !vdb.voxel_world_player.socket_client):
+				core.craft_with(null, global_transform.origin, null, false);
 		else:
 			$Fire_Sound.stop();
 

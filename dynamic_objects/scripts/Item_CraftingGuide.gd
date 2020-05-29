@@ -34,6 +34,7 @@ var _num_pages = 1;
 
 var _grabbing_controller = null;
 
+# todo controller param
 func get_grab_object(controller):
 	_grabbing_controller = controller;
 	return self;
