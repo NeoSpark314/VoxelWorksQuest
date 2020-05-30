@@ -202,6 +202,12 @@ func hide_inventory():
 	visible = false;
 	$Area.monitorable = false;
 
+func clear():
+	for i in range(0, _inventory.size()):
+		_inventory[i][0] = null;
+		_inventory[i][1] = 0;
+
+
 var _active_inventory_controller = null;
 
 func _check_display_inventory_gesture(controller : ARVRController):

@@ -970,6 +970,10 @@ func _back_to_main_menu():
 
 	user_dummy_by_uuid = {};
 
+	# clear inventory for next world
+	_player_inventory.clear();
+	_player_toolbelt.clear();
+
 	var parent = get_parent();
 
 	if parent:

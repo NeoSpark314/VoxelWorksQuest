@@ -48,6 +48,11 @@ func apply_save_dictionary(r : Dictionary):
 		else:
 			vr.log_error("Could not load object from " + str(item));
 
+func clear():
+	for slot in $Slots.get_children():
+		for child in slot.get_children():
+			child.queue_free();
+
 
 func _physics_process(_dt):
 	global_transform.origin = vr.vrCamera.global_transform.origin;
