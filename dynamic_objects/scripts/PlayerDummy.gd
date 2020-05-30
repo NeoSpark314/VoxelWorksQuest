@@ -15,16 +15,18 @@ var _hands = {
 	left = {
 		held_item = null,
 		transform = Transform.IDENTITY,
-		last_transform = null
+		last_transform = null,
+		viewed_transform = Transform.IDENTITY
 	},
 	right = {
 		held_item = null,
 		transform = Transform.IDENTITY,
-		last_transform = null
+		last_transform = null,
+		viewed_transform = Transform.IDENTITY
 	}
 };
 
-const INTERPOLATION_DURATION = 1 / 20;
+const INTERPOLATION_DURATION = 1.0 / 20;
 var _t = 0;
 
 func _ready():
@@ -40,21 +42,27 @@ func _process(delta):
 func _update_hand(hand):
 	if !hand.held_item:
 		return;
-
-	var viewed_transform = hand.transform;
 	
 	if hand.last_transform && _t < INTERPOLATION_DURATION:
-		viewed_transform = hand.last_transform.interpolate_with(hand.transform, _t / INTERPOLATION_DURATION);
+		hand.viewed_transform = hand.last_transform.interpolate_with(hand.transform, _t / INTERPOLATION_DURATION);
+	else:
+		hand.viewed_transform = hand.transform;
 
-	hand.held_item.global_transform = viewed_transform;
+	hand.held_item.global_transform = hand.viewed_transform;
 
 ###
 
 func update_positions(left_hand_transform, right_hand_transform):
 	_t = 0;
-	_hands.left.last_transform = _hands.left.transform;
-	_hands.right.last_transform = _hands.right.transform;
-	
+
+	if !_hands.left.last_transform:
+		_hands.left.viewed_transform = left_hand_transform;
+	if !_hands.right.last_transform:
+		_hands.right.viewed_transform = right_hand_transform;
+
+	_hands.left.last_transform = _hands.left.viewed_transform;
+	_hands.right.last_transform = _hands.right.viewed_transform;
+
 	_hands.left.transform = left_hand_transform;
 	_hands.right.transform = right_hand_transform;
 
