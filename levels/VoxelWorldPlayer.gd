@@ -98,8 +98,8 @@ func load_world(full_save_dictionary, players):
 
 	for data in players:
 		var dummy = _player_dummy.instance();
-		parent_world.add_child(dummy);
 		user_dummy_by_uuid[data.uuid] = dummy;
+		parent_world.add_child(dummy);
 		dummy.load_player_data(data);
 	
 	var terrain = parent_world.terrain;
@@ -114,14 +114,16 @@ func load_world(full_save_dictionary, players):
 	
 	socket_client.send_reliable("identify", [ uuid, preferences ]);
 
-func add_player(player_uuid):
+func add_player(player_uuid, pid):
 	if uuid == player_uuid:
 		return;
 	
 	var dummy = _player_dummy.instance();
 	dummy.uuid = player_uuid;
+	dummy.pid = pid;
 	user_dummy_by_uuid[player_uuid] = dummy;
 	parent_world.add_child(dummy);
+	dummy.generate_head();
 
 func remove_player(player_uuid):
 	if uuid == player_uuid:
@@ -130,7 +132,7 @@ func remove_player(player_uuid):
 	user_dummy_by_uuid[player_uuid].queue_free();
 	user_dummy_by_uuid.erase(player_uuid);
 
-func position_player(player_uuid, left_hand_transform, right_hand_transform):
+func position_player(player_uuid, head_transform, left_hand_transform, right_hand_transform):
 	if player_uuid == uuid:
 		return;
 	
@@ -139,7 +141,7 @@ func position_player(player_uuid, left_hand_transform, right_hand_transform):
 	if !player:
 		return;
 	
-	player.update_positions(left_hand_transform, right_hand_transform);
+	player.update_positions(head_transform, left_hand_transform, right_hand_transform);
 
 func play_sfx(s, pos):
 	vdb._play_sfx(s, pos);
@@ -373,12 +375,14 @@ func _creative_destroy(voxel_pos):
 func _send_positions():
 	if socket_client:
 		socket_client.send("position_player", [
+			vr.vrCamera.global_transform,
 			vr.leftController.get_grab_transform(),
 			vr.rightController.get_grab_transform()
 		]);
 	else:
 		core.update_player_positions(
 			uuid,
+			vr.vrCamera.global_transform,
 			vr.leftController.get_grab_transform(),
 			vr.rightController.get_grab_transform()
 		);
@@ -437,6 +441,7 @@ func request_release(hand_name, final_transform):
 func gen_player_data():
 	var data = {
 		uuid = uuid,
+		pid = 0,
 		inventory = _player_inventory.get_save_dictionary(),
 		toolbelt_left = null,
 		toolbelt_right = null,

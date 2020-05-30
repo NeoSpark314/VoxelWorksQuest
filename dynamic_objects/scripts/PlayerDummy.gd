@@ -1,6 +1,7 @@
 extends Spatial
 
 var uuid;
+var pid;
 
 var INVENTORY_SIZE = 8;
 var _inventory = [];
@@ -11,18 +12,34 @@ var _toolbelt = {
 	right = null
 };
 
+var _head = {
+	transform = Transform.IDENTITY,
+	last_transform = null,
+	viewed_transform = Transform.IDENTITY,
+	spatial = null,
+};
+
+var _head_options = [
+	"aspen_tree",
+	"tree",
+	"pine_tree",
+	"jungle_tree"
+];
+
 var _hands = {
 	left = {
 		held_item = null,
 		transform = Transform.IDENTITY,
 		last_transform = null,
-		viewed_transform = Transform.IDENTITY
+		viewed_transform = Transform.IDENTITY,
+		spatial = null
 	},
 	right = {
 		held_item = null,
 		transform = Transform.IDENTITY,
 		last_transform = null,
-		viewed_transform = Transform.IDENTITY
+		viewed_transform = Transform.IDENTITY,
+		spatial = null
 	}
 };
 
@@ -30,44 +47,84 @@ const INTERPOLATION_DURATION = 1.0 / 20;
 var _t = 0;
 
 func _ready():
+	_head.spatial = $Head;
+	_hands.left.spatial = $Left_Hand;
+	_hands.right.spatial = $Right_Hand;
+
+	var block_def = vdb.get_def_from_name("cloud");
+	_generate_hand(_hands.left, block_def);
+	_generate_hand(_hands.right, block_def);
+
 	for _i in range(0, INVENTORY_SIZE):
 		_inventory.append([null, 0]);
 
+func generate_head():
+	var block_def = vdb.get_def_from_name(_head_options[pid]);
+	var voxel_object = vdb.create_voxel_mesh_from_def(block_def);
+
+	voxel_object.scale *= .5;
+	voxel_object.translation = -voxel_object.scale / 2;
+
+	_head.spatial.add_child(voxel_object);
+	
+func _generate_hand(hand, block_def):
+	var voxel_object = vdb.create_voxel_mesh_from_def(block_def);
+	
+	voxel_object.scale *= .15;
+	voxel_object.translation = -voxel_object.scale / 2;
+
+	hand.spatial.add_child(voxel_object);
+
 func _process(delta):
+	# initial player position not set yet
+	if !_head.last_transform:
+		return;
+
 	_t += delta;
 
+	_interpolate_transform(_head);
 	_update_hand(_hands.left);
 	_update_hand(_hands.right);
 
 func _update_hand(hand):
-	if !hand.held_item:
-		return;
-	
-	if hand.last_transform && _t < INTERPOLATION_DURATION:
-		hand.viewed_transform = hand.last_transform.interpolate_with(hand.transform, _t / INTERPOLATION_DURATION);
-	else:
-		hand.viewed_transform = hand.transform;
+	_interpolate_transform(hand);
 
-	hand.held_item.global_transform = hand.viewed_transform;
+	hand.spatial.visible = !hand.held_item;
+
+	if hand.held_item:
+		hand.held_item.global_transform = hand.viewed_transform;
+
+func _interpolate_transform(head_or_hand):
+	if head_or_hand.last_transform && _t < INTERPOLATION_DURATION:
+		var weight = _t / INTERPOLATION_DURATION;
+		head_or_hand.viewed_transform = head_or_hand.last_transform.interpolate_with(head_or_hand.transform, weight);
+	else:
+		head_or_hand.viewed_transform = head_or_hand.transform;
+	
+	head_or_hand.spatial.global_transform = head_or_hand.viewed_transform;
 
 ###
 
-func update_positions(left_hand_transform, right_hand_transform):
+func update_positions(head_transform, left_hand_transform, right_hand_transform):
 	_t = 0;
 
-	if !_hands.left.last_transform:
-		_hands.left.viewed_transform = left_hand_transform;
-	if !_hands.right.last_transform:
-		_hands.right.viewed_transform = right_hand_transform;
+	_update_transform(_head, head_transform);
+	_update_transform(_hands.left, left_hand_transform);
+	_update_transform(_hands.right, right_hand_transform);
 
-	_hands.left.last_transform = _hands.left.viewed_transform;
-	_hands.right.last_transform = _hands.right.viewed_transform;
+func _update_transform(head_or_hand, transform):
+	head_or_hand.transform = transform;
 
-	_hands.left.transform = left_hand_transform;
-	_hands.right.transform = right_hand_transform;
+	if !head_or_hand.last_transform:
+		head_or_hand.viewed_transform = transform;
+
+	head_or_hand.last_transform = head_or_hand.viewed_transform;
 
 func load_player_data(data):
 	uuid = data.uuid;
+	pid = data.pid;
+
+	generate_head();
 
 	apply_inventory_save_dict(data.inventory);
 
@@ -121,6 +178,7 @@ func apply_inventory_save_dict(data):
 func gen_player_data():
 	var data = {
 		uuid = uuid,
+		pid = pid,
 		inventory = {
 			def_names = [],
 			item_count = [],

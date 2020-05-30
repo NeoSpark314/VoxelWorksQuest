@@ -13,8 +13,8 @@ func start():
 	tcp_server = TCP_Server.new();
 	tcp_server.listen(SERVER_PORT);
 
-	for i in range(MAX_PLAYERS):
-		available_ids.push_back(i);
+	for i in range(MAX_PLAYERS - 1):
+		available_ids.push_front(i);
 
 func stop():
 	for socket in tcp_sockets:

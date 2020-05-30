@@ -112,14 +112,16 @@ func _load_user(id: int, uuid: String, preferences: Dictionary):
 		preferences = preferences
 	};
 
-	vdb.voxel_world_player.add_player(uuid);
+	var pid = id + 1;
 
-	server.broadcast_reliable("add_player", [ uuid ]);
+	vdb.voxel_world_player.add_player(uuid, pid);
 
-func _position_player(id: int, left_hand_transform, right_hand_transform):
+	server.broadcast_reliable("add_player", [ uuid, pid ]);
+
+func _position_player(id: int, head_transform, left_hand_transform, right_hand_transform):
 	var user = users_by_socket_id[id];
 	
-	update_player_positions(user.uuid, left_hand_transform, right_hand_transform);
+	update_player_positions(user.uuid, head_transform, left_hand_transform, right_hand_transform);
 
 func _user_disconnected(id: int):
 	var user = users_by_socket_id[id];
@@ -199,11 +201,11 @@ func _play_sfx(sfx, position: Vector3):
 	if server:
 		server.broadcast("play_sfx", [ sfx, position ]);
 
-func update_player_positions(uuid, left_hand_transform, right_hand_transform):
-	vdb.voxel_world_player.position_player(uuid, left_hand_transform, right_hand_transform);
+func update_player_positions(uuid, head_transform, left_hand_transform, right_hand_transform):
+	vdb.voxel_world_player.position_player(uuid, head_transform, left_hand_transform, right_hand_transform);
 	
 	if server:
-		server.broadcast("position_player", [ uuid, left_hand_transform, right_hand_transform ]);
+		server.broadcast("position_player", [ uuid, head_transform, left_hand_transform, right_hand_transform ]);
 
 func _send_crafting_status(uuid, voxel_pos, success, is_physical):
 	vdb.voxel_world_player.crafting_status(uuid, voxel_pos, success, is_physical);
