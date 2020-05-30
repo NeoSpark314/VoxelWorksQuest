@@ -408,19 +408,19 @@ func request_from_inventory(hand_name, slot):
 
 func request_move_to_inventory(hand_name, slot):
 	if socket_client:
-		socket_client.send_reliable("move_to_inventory", hand_name, slot);
+		socket_client.send_reliable("move_to_inventory", [ hand_name, slot ]);
 	else:
 		core.move_to_inventory(uuid, hand_name, slot);
 
 func request_move_to_tool_slot(hand_name, slot):
 	if socket_client:
-		socket_client.send_reliable("move_to_tool_slot", hand_name, slot);
+		socket_client.send_reliable("move_to_tool_slot", [ hand_name, slot ]);
 	else:
 		core.move_to_tool_slot(uuid, hand_name, slot);
 
 func request_tool_to_hand(slot, hand_name):
 	if socket_client:
-		socket_client.send_reliable("move_tool_to_hand", slot, hand_name);
+		socket_client.send_reliable("move_tool_to_hand", [ slot, hand_name ]);
 	else:
 		core.move_tool_to_hand(uuid, slot, hand_name);
 
