@@ -34,42 +34,19 @@ info_label_visible = false
 transform = Transform( -2, 0, -3.01992e-07, 0, 2, 0, 3.01992e-07, 0, -2, 0, 1.6, 1 )
 text = "Look behind you!"
 margin = 32
-billboard = false
-depth_test = true
-resize_mode = 0
-font_size_multiplier = 1.0
-font_color = Color( 1, 1, 1, 1 )
-background_color = Color( 0, 0, 0, 1 )
-transparent = false
 
 [node name="StatisticsTextLabel" parent="." instance=ExtResource( 7 )]
 transform = Transform( -8.74228e-08, 0, 2, 0, 2, 0, -2, 0, -8.74228e-08, -1, 1.6, 0 )
 margin = 32
-billboard = false
-depth_test = true
-resize_mode = 0
-font_size_multiplier = 1.0
-font_color = Color( 1, 1, 1, 1 )
-background_color = Color( 0, 0, 0, 1 )
-transparent = false
 
 [node name="InfoTextLabel" parent="." instance=ExtResource( 7 )]
 transform = Transform( 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.6, -1 )
 margin = 32
-billboard = false
-depth_test = true
-resize_mode = 0
-font_size_multiplier = 1.0
-font_color = Color( 1, 1, 1, 1 )
-background_color = Color( 0, 0, 0, 1 )
-transparent = false
 
 [node name="MainMenu" parent="." instance=ExtResource( 9 )]
 transform = Transform( 2.62268e-07, 0, -2, 0, 2, 0, 2, 0, 2.62268e-07, 1, 1.6, 0 )
-editor_live_update = false
-transparent = false
 
-[node name="Control" parent="MainMenu" instance=ExtResource( 2 )]
+[node name="MainMenu" parent="MainMenu" instance=ExtResource( 2 )]
 
 [node name="OQ_UI2DLogWindow" parent="." instance=ExtResource( 13 )]
 transform = Transform( 2, 0, 0, 0, 1.41421, -1.41421, 0, 1.41421, 1.41421, 0, 3, -0.542851 )

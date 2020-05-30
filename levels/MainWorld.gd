@@ -16,6 +16,7 @@ func _ready():
 	vdb.voxel_world_player.set_player_parent_world(self);
 	
 	if vdb.startup_settings.remote_host:
+		save_enabled = false;
 		# detach terrain as it has no generator and will crash
 		terrain.get_parent().remove_child(terrain);
 

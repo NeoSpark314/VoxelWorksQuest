@@ -47,6 +47,8 @@ var gameplay_settings := {
 	online_username = "VoxelWorksPlayer",
 	online_useremail = "",
 	online_password = "",
+	
+	last_remote_host = "192.168.100.58",
 }
 
 

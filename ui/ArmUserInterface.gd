@@ -32,10 +32,6 @@ func _process(dt):
 	if (visible && active_controller):
 		global_transform = active_controller.get_ui_transform();
 	
-	#!!TEMP: remove me
-	if (Input.is_action_just_pressed("ui_accept")):
-		vdb.voxel_world_player.share_current_world_online();
-
 
 func _check_and_make_visible(controller : ARVRController):
 	if (active_controller): 

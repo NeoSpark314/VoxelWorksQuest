@@ -37,30 +37,40 @@ __meta__ = {
 }
 
 [node name="CheckBox_ResetStartPosition" type="CheckBox" parent="TabContainer/Load Game"]
-margin_left = 16.0
-margin_top = 352.0
-margin_right = 336.0
-margin_bottom = 400.0
+margin_left = 8.0
+margin_top = 359.0
+margin_right = 328.0
+margin_bottom = 407.0
 text = "Reset to Start Position"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="LoadGame_Host_Checkbox" type="CheckBox" parent="TabContainer/Load Game"]
+margin_left = 8.0
+margin_top = 407.0
+margin_right = 328.0
+margin_bottom = 455.0
+text = "Multiplayer Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="CheckBox_ResetCraftingGuide" type="CheckBox" parent="TabContainer/Load Game"]
-margin_left = 400.0
-margin_top = 352.0
-margin_right = 704.0
-margin_bottom = 400.0
+margin_left = 440.0
+margin_top = 359.0
+margin_right = 744.0
+margin_bottom = 407.0
 text = "Reset Crafting Guide"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Label_Title" type="Label" parent="TabContainer/Load Game"]
-margin_left = 16.0
-margin_top = 16.0
-margin_right = 752.0
-margin_bottom = 64.0
+margin_left = 8.0
+margin_top = 7.0
+margin_right = 744.0
+margin_bottom = 55.0
 text = "Voxel Works Quest - v0.0.0"
 align = 1
 valign = 1
@@ -69,10 +79,10 @@ __meta__ = {
 }
 
 [node name="SaveGame_ItemList" type="ItemList" parent="TabContainer/Load Game"]
-margin_left = 15.0
-margin_top = 64.0
-margin_right = 728.0
-margin_bottom = 352.0
+margin_left = 8.0
+margin_top = 55.0
+margin_right = 744.0
+margin_bottom = 359.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -204,6 +214,16 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="NewGame_Host_Checkbox" type="CheckBox" parent="TabContainer/New Game"]
+margin_left = 8.0
+margin_top = 327.0
+margin_right = 328.0
+margin_bottom = 375.0
+text = "Multiplayer Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Online" type="Panel" parent="TabContainer"]
 visible = false
 anchor_right = 1.0
@@ -311,6 +331,56 @@ valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Join Server" type="Panel" parent="TabContainer/Online/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 51.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="JoinServer_Status_Label" type="Label" parent="TabContainer/Online/TabContainer/Join Server"]
+margin_left = 12.0
+margin_top = 333.0
+margin_right = 716.0
+margin_bottom = 381.0
+custom_styles/normal = ExtResource( 5 )
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="JoinServer_Join_Button" type="Button" parent="TabContainer/Online/TabContainer/Join Server"]
+margin_left = 380.0
+margin_top = 269.0
+margin_right = 716.0
+margin_bottom = 317.0
+text = "Join Server"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IPAddress_TextEdit" type="TextEdit" parent="TabContainer/Online/TabContainer/Join Server"]
+margin_left = 172.0
+margin_top = 13.0
+margin_right = 716.0
+margin_bottom = 61.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IPAddress_Label" type="Label" parent="TabContainer/Online/TabContainer/Join Server"]
+margin_left = 12.0
+margin_top = 13.0
+margin_right = 156.0
+margin_bottom = 61.0
+text = "Server IP:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 [connection signal="pressed" from="TabContainer/Load Game/Button_LoadGame" to="." method="_on_Button_LoadGame_pressed"]
 [connection signal="pressed" from="TabContainer/New Game/Button_StartNewGame" to="." method="_on_Button_StartNewGame_pressed"]
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_RefreshList_Button" to="TabContainer/Online" method="_on_VisitWorld_RefreshList_Button_pressed"]
@@ -318,3 +388,4 @@ __meta__ = {
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_Visit_Button" to="TabContainer/Online" method="_on_VisitWorld_Visit_Button_pressed"]
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/Refresh_User_HTTPRequest" to="TabContainer/Online" method="_on_Refresh_User_HTTPRequest_request_completed"]
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/LoadAndPlay_World_HTTPRequest" to="TabContainer/Online" method="_on_LoadAndPlay_World_HTTPRequest_request_completed"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Join Server/JoinServer_Join_Button" to="." method="_on_JoinServer_Join_Button_pressed"]

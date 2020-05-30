@@ -128,6 +128,11 @@ var terrain_blocks_file_list = []
 
 
 func _on_TerrainBlockTextures_ItemList_item_selected(index):
+	if (index >= terrain_blocks_file_list.size()):
+		vr.log_error("Invalid terrain block texture index " + str(index) + 
+		" available are only " + str(terrain_blocks_file_list));
+	return;
+	
 	var path : String = terrain_blocks_file_list[index]
 	
 	
