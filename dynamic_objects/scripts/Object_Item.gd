@@ -18,12 +18,15 @@ func get_item_def():
 	
 func get_save_dictionary() -> Dictionary:
 	var ret = {
+		uuid = uuid,
 		def_name = get_def_name(),
 		transform = vdb._transform_to_arr(global_transform),
 	}
 	return ret;
 	
 func apply_save_dictionary(r : Dictionary):
+	if "uuid" in r:
+		uuid = r.uuid;
 	global_transform = vdb._arr_to_transform(r.transform);
 
 

@@ -32,14 +32,66 @@ func stop_server():
 	server.stop_server();
 	server = null;
 
+### world data transfer
+
+func get_save_dictionary():
+	var ret = {
+		items_in_world = [],
+		objects_in_world = [],
+		crates_in_world = [],
+	}
+	
+	# all nodes attached to the root are checked for objects and then saved
+	for node in vdb.voxel_world_player.parent_world.get_children():
+		if "_world_object_type" in node:
+			ret.objects_in_world.append(node.get_save_dictionary());
+		
+		# crude way of detecting that it is an Object_Item or ObjectVoxelBlock
+		if ("_item_def" in node) || ("_voxel_def" in node):
+			ret.items_in_world.append(node.get_save_dictionary());
+			
+	# next we store all objects currently in a crafting grid to not loose them
+	for craft_grid in vdb.voxel_world_player.parent_container_crafting_grids.get_children():
+		for node in craft_grid.get_all_objects_in_grid():
+			if ("_item_def" in node) || ("_voxel_def" in node):
+				ret.items_in_world.append(node.get_save_dictionary());
+
+	for c in vdb.voxel_world_player.parent_container_crates.get_children():
+		ret.crates_in_world.append(c.get_save_dictionary());
+
+	return ret;
+
+func apply_save_dictionary(data : Dictionary):
+	for object_data in data.objects_in_world:
+		var obj = vdb.create_world_object_from_type(object_data.world_object_type);
+		vdb.voxel_world_player.parent_world.add_child(obj)
+		obj.apply_save_dictionary(object_data);
+
+	for crate_data in data.crates_in_world:
+		var crate = load("res://dynamic_objects/Container_Crate.tscn").instance();
+		vdb.voxel_world_player.parent_container_crates.add_child(crate);
+		crate.apply_save_dictionary(crate_data);
+
+	for item_data in data.items_in_world:
+		var def = vdb.get_def_from_name(item_data.def_name);
+		
+		if (def == null):
+			vr.log_error("Could not load def " + item_data.def_name);
+			continue;
+		
+		var obj = vdb.create_object_from_def(def);
+		if (obj):
+			vdb.voxel_world_player.parent_world.add_child(obj);
+			obj.apply_save_dictionary(item_data);
+		else:
+			vr.log_error("Could not load object from " + str(item_data));
+
 ### event listeners
 
 func _user_connected(id: int):
 	# send world data to the player
 
-	# this is actually just world nodes
-	# inventory data is separated
-	var persisted_nodes = [ vdb.voxel_world_player ];
+	var persisted_nodes = [ self ];
 
 	var world_data = vdb._get_save_dictionary(persisted_nodes);
 	var player_data = [ vdb.voxel_world_player.gen_player_data() ];
