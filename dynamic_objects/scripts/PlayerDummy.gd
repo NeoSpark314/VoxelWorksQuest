@@ -169,7 +169,7 @@ func release_with(hand_name):
 func get_held_object(hand_name):
 	return _hands[hand_name].held_item;
 
-func delete_held_item(hand_name):
+func delete_held_object(hand_name):
 	var item = _hands[hand_name].held_item;
 	
 	if !item:

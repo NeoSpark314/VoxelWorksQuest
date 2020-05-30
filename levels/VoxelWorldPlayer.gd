@@ -509,7 +509,7 @@ func _get_controller(hand_name):
 	else:
 		return vr.rightController;
 
-func delete_held_item(hand_name):
+func delete_held_object(hand_name):
 	var controller = _get_controller(hand_name);
 	var obj_grabber = controller.find_node("ObjectGrabber"); #!!TOOPT
 	obj_grabber.delete_held_object();
