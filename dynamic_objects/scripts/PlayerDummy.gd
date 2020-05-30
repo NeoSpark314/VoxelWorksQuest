@@ -85,19 +85,23 @@ func load_player_data(data):
 
 		_toolbelt.right = item;
 
-	if(data.hand_left):
-		var def = vdb.get_def_from_name(data.hand_left.name);
-		var item = vdb.create_object_from_def(def);
-		item.uuid = data.hand_left.uuid;
-
-		_hands.left.held_item = item;
-
-	if(data.hand_right):
-		var def = vdb.get_def_from_name(data.hand_right.name);
-		var item = vdb.create_object_from_def(def);
-		item.uuid = data.hand_right.uuid;
+	for child in vdb.voxel_world_player.parent_world.get_children():
+		if !child.has_method("can_grab"):
+			continue;
 		
-		_hands.right.held_right = item;
+		if data.hand_left == child.uuid:
+			_hands.left.held_item = child;
+
+			# already found the item for the right hand
+			if !data.hand_right || _hands.right.held_item:
+				break;
+			
+		if data.hand_right == child.uuid:
+			_hands.right.held_item = child;
+
+			# already found the item for the left hand
+			if !data.hand_left || _hands.left.held_item:
+				break;
 
 func apply_inventory_save_dict(data):
 	active_inventory_slot = data.active_inventory_slot;
@@ -151,16 +155,10 @@ func gen_player_data():
 		};
 
 	if(_hands.left.held_item):
-		data.hand_left = {
-			uuid = _hands.left.held_item.uuid,
-			name = _hands.left.held_item.get_def().name
-		};
+		data.hand_left = _hands.left.held_item.uuid;
 
 	if(_hands.right.held_item):
-		data.hand_right = {
-			uuid = _hands.right.held_item.uuid,
-			name = _hands.right.held_item.get_def().name
-		};
+		data.hand_right = _hands.right.held_item.uuid;
 
 	return data;
 

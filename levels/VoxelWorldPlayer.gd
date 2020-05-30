@@ -445,7 +445,7 @@ func gen_player_data():
 
 	var toolbelt_left = _player_toolbelt.slots.left.get_slot_object();
 
-	if(toolbelt_left):
+	if toolbelt_left:
 		data.toolbelt_left = {
 			uuid = toolbelt_left.uuid,
 			name = toolbelt_left.get_def().name
@@ -453,7 +453,7 @@ func gen_player_data():
 
 	var toolbelt_right = _player_toolbelt.slots.right.get_slot_object();
 
-	if(toolbelt_right):
+	if toolbelt_right:
 		data.toolbelt_right = {
 			uuid = toolbelt_right.uuid,
 			name = toolbelt_right.get_def().name
@@ -461,19 +461,13 @@ func gen_player_data():
 
 	var left_held_object = get_held_object('left');
 
-	if(left_held_object):
-		data.hand_left = {
-			uuid = left_held_object.uuid,
-			name = left_held_object.get_def().name
-		};
+	if left_held_object:
+		data.hand_left = left_held_object.uuid;
 
 	var right_held_object = get_held_object('right');
 
-	if(right_held_object):
-		data.hand_right = {
-			uuid = right_held_object.uuid,
-			name = right_held_object.get_def().name
-		};
+	if right_held_object:
+		data.hand_right = right_held_object.uuid;
 
 	return data;
 
