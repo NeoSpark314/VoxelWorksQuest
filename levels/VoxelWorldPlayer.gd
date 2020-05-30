@@ -119,6 +119,7 @@ func add_player(player_uuid):
 		return;
 	
 	var dummy = _player_dummy.instance();
+	dummy.uuid = player_uuid;
 	user_dummy_by_uuid[player_uuid] = dummy;
 	parent_world.add_child(dummy);
 

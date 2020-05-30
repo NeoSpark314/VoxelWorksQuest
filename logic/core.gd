@@ -97,7 +97,7 @@ func _user_connected(id: int):
 	var player_data = [ vdb.voxel_world_player.gen_player_data() ];
 	
 	for dummy_player in vdb.voxel_world_player.user_dummy_by_uuid.values():
-		dummy_player.gen_player_data();
+		player_data.push_back(dummy_player.gen_player_data());
 
 	server.send_reliable(id, "world_data", [ world_data, player_data ]);
 
