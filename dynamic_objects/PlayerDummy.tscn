@@ -4,3 +4,9 @@
 
 [node name="Spatial" type="Spatial"]
 script = ExtResource( 1 )
+
+[node name="Head" type="Spatial" parent="."]
+
+[node name="Left_Hand" type="Spatial" parent="."]
+
+[node name="Right_Hand" type="Spatial" parent="."]
