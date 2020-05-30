@@ -9,7 +9,6 @@ var _main_menu_checkbox_reset_crafting_guide : CheckBox = null;
 var _load_game_host_checkbox : CheckBox = null;
 var _new_game_host_checkbox : CheckBox = null;
 
-onready var _join_server_ip_address_textedit : TextEdit = $"TabContainer/Online/TabContainer/Join Server/IPAddress_TextEdit";
 
 func _setup_main_menu():
 	var label_title = find_node("Label_Title", true, false);
@@ -22,7 +21,6 @@ func _setup_main_menu():
 
 	label_title.set_text(vdb.GAME_NAME + " - " + vdb.GAME_VERSION_STRING);
 	
-	_join_server_ip_address_textedit.text = vdb.gameplay_settings.last_remote_host;
 
 func _ready():
 	_create_savegame_list();
@@ -135,12 +133,3 @@ func _on_Button_StartNewGame_pressed():
 
 
 
-func _on_JoinServer_Join_Button_pressed():
-	vdb.reset_startup_settings();
-	
-	# save the last entered ip for next start
-	vdb.gameplay_settings.last_remote_host = _join_server_ip_address_textedit.text;
-	
-	vdb.startup_settings.remote_host = _join_server_ip_address_textedit.text;
-
-	_start_game();

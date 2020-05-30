@@ -1,16 +1,7 @@
 extends Panel
 
-onready var _status_label = $TabContainer/Login/LoginStatusMessage_Label;
+onready var _join_server_ip_address_textedit : TextEdit = $"TabContainer/Join Server/IPAddress_TextEdit";
 
-onready var _login_email_line_edit = $TabContainer/Login/LoginEMail_LineEdit;
-onready var _login_password_line_edit = $TabContainer/Login/Login_Password_LineEdit;
-onready var _login_name_line_edit = $TabContainer/Login/LoginName_LineEdit;
-onready var _login_http = $TabContainer/Login/Login_HTTPRequest;
-onready var _register_http = $TabContainer/Login/Register_HTTPRequest;
-
-func _ready():
-	_update_user_list();
-	
 
 onready var _user_item_list := $"TabContainer/Visit World/VisitWorld_User_ItemList";
 onready var _world_list := $"TabContainer/Visit World/VisitWorld_World_ItemList";
@@ -19,12 +10,18 @@ onready var _world_http := $"TabContainer/Visit World/Refresh_World_HTTPRequest"
 onready var _loadandplay_http := $"TabContainer/Visit World/LoadAndPlay_World_HTTPRequest";
 onready var _vw_status := $"TabContainer/Visit World/VisitWorld_Status_Label";
 
+
 #var _selected_user = null;
 
 var _loaded_user_list = [];
 var _loaded_world_list = [];
 var _loaded_info = {}; # full loaded dicitonary
 
+func _ready():
+	_join_server_ip_address_textedit.text = vdb.gameplay_settings.last_remote_host;
+
+	_update_user_list();
+	
 
 func _on_VisitWorld_RefreshList_Button_pressed():
 	_user_item_list.clear();
@@ -119,3 +116,13 @@ func _on_Update_HTTPRequest_request_completed(result, response_code, headers, bo
 		_vw_status.text = "Update Error: " + response_body.result.error
 	else:
 		pass;
+
+
+func _on_JoinServer_Join_Button_pressed():
+	vdb.reset_startup_settings();
+	
+	# save the last entered ip for next start
+	vdb.gameplay_settings.last_remote_host = _join_server_ip_address_textedit.text;
+	vdb.startup_settings.remote_host = _join_server_ip_address_textedit.text;
+
+	vr.switch_scene("res://levels/MainWorld.tscn", 0.5);
