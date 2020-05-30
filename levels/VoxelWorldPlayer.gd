@@ -1371,7 +1371,7 @@ func move_player_into_terrain_after_load(_terrain):
 
 #	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.wood);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stick);
-	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);
+	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonepick);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stonehammer);
 #	_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.stone_workbench);
 	#_player_inventory.add_item_or_block_to_inventory(vdb.names2blockORitem_def.wooden_crate);

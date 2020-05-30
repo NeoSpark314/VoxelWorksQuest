@@ -125,4 +125,6 @@ func _on_JoinServer_Join_Button_pressed():
 	vdb.gameplay_settings.last_remote_host = _join_server_ip_address_textedit.text;
 	vdb.startup_settings.remote_host = _join_server_ip_address_textedit.text;
 
+	vdb.save_gameplay_settings();
+	
 	vr.switch_scene("res://levels/MainWorld.tscn", 0.5);

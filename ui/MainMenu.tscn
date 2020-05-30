@@ -388,4 +388,4 @@ __meta__ = {
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_Visit_Button" to="TabContainer/Online" method="_on_VisitWorld_Visit_Button_pressed"]
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/Refresh_User_HTTPRequest" to="TabContainer/Online" method="_on_Refresh_User_HTTPRequest_request_completed"]
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/LoadAndPlay_World_HTTPRequest" to="TabContainer/Online" method="_on_LoadAndPlay_World_HTTPRequest_request_completed"]
-[connection signal="pressed" from="TabContainer/Online/TabContainer/Join Server/JoinServer_Join_Button" to="." method="_on_JoinServer_Join_Button_pressed"]
+[connection signal="pressed" from="TabContainer/Online/TabContainer/Join Server/JoinServer_Join_Button" to="TabContainer/Online" method="_on_JoinServer_Join_Button_pressed"]
