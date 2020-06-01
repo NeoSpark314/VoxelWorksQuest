@@ -473,7 +473,7 @@ var item_def = [
 		name = "crafting_guide",
 		item_tile_x = 0, item_tile_y = 1,
 		item_scene = "Item_CraftingGuide.tscn",
-		item_orientation = Vector3(deg2rad(90), deg2rad(90), 0),
+		item_orientation = Vector3(deg2rad(45), deg2rad(90), 0),
 		grab_pixel = [8, 15],
 	},
 	
