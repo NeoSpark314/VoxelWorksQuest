@@ -19,7 +19,11 @@ func _update_from_settings():
 		Mode: %s
 		UUID: %s
 """ % [vdb.get_game_mode_string(), vdb.world_uuid]
-	
+
+	if core.server:
+		var addresses = IP.get_local_addresses();
+		_game_info_label.text += "Local IP Address: " + addresses[0];
+		
 
 	
 
