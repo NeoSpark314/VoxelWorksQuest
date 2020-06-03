@@ -42,12 +42,12 @@ func put_item(held_obj):
 	if p:
 		p.remove_child(held_obj);
 
-	slot.add_child(held_obj);
+	$Slot.add_child(held_obj);
 	held_obj.transform = Transform();
 	$MeshInstance.visible = false;
 
 func _on_Area_area_entered(area):
-	if (slot.get_child_count() > 0):
+	if ($Slot.get_child_count() > 0):
 		$MeshInstance.visible = false;
 	else:
 		$MeshInstance.visible = true;

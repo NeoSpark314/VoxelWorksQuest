@@ -50,7 +50,7 @@ func apply_save_dictionary(r : Dictionary):
 
 func clear():
 	for slot in $Slots.get_children():
-		for child in slot.get_children():
+		for child in slot.slot.get_children():
 			child.queue_free();
 
 

@@ -95,6 +95,7 @@ __meta__ = {
 }
 
 [node name="Settings" type="Panel" parent="TabContainer"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 8.0
@@ -367,6 +368,7 @@ __meta__ = {
 }
 
 [node name="Textures" type="Panel" parent="TabContainer/Settings/GameplaySettings"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -413,7 +415,6 @@ __meta__ = {
 }
 
 [node name="Online" type="Panel" parent="TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 8.0
@@ -444,12 +445,11 @@ margin_left = 12.0
 margin_top = 13.0
 margin_right = 972.0
 margin_bottom = 370.0
-text = "IMPORTANT: this is a very early test feature
+text = "IMPORTANT: Online Functionality is still in the early test phase.
 
-The upload functionality is in a VERY experimental
-state. If you would like to get an account please join the
-VoxelWorks discord and ask in the #ShareTest channel.
-I will create a test account for you."
+The upload functionality is still in an experimental state. If you use it and
+encounter issues please join the VoxelWorks Discord channel and report
+the bug/problem."
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -609,7 +609,7 @@ margin_left = -4.0
 margin_top = 13.0
 margin_right = 972.0
 margin_bottom = 58.0
-text = "Register a new Voxel Works account (not enabled yet/see Info)"
+text = "Register a new Voxel Works account"
 align = 1
 valign = 1
 __meta__ = {
@@ -623,7 +623,7 @@ margin_left = 12.0
 margin_top = 77.0
 margin_right = -828.0
 margin_bottom = -252.0
-text = "EMail:"
+text = "Login EMail:"
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
@@ -698,7 +698,6 @@ margin_left = 12.0
 margin_top = 269.0
 margin_right = 972.0
 margin_bottom = 317.0
-disabled = true
 text = "Register"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -726,4 +725,3 @@ __meta__ = {
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Share/ShareWorldOnline_Button" to="TabContainer/Online" method="_on_ShareWorldOnline_Button_pressed"]
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Share/Share_HTTPRequest" to="TabContainer/Online" method="_on_Share_HTTPRequest_request_completed"]
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Register/Register_Button" to="TabContainer/Online" method="_on_Register_Button_pressed"]
-[connection signal="request_completed" from="TabContainer/Online/TabContainer/Register/Register_HTTPRequest" to="TabContainer/Online" method="_on_Register_HTTPRequest_request_completed"]

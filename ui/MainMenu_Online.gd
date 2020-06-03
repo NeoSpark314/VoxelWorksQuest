@@ -10,6 +10,8 @@ onready var _world_http := $"TabContainer/Visit World/Refresh_World_HTTPRequest"
 onready var _loadandplay_http := $"TabContainer/Visit World/LoadAndPlay_World_HTTPRequest";
 onready var _vw_status := $"TabContainer/Visit World/VisitWorld_Status_Label";
 
+onready var _visit_world_host_checkbox := $"TabContainer/Visit World/VisitWorld_Host_Checkbox";
+
 
 #var _selected_user = null;
 
@@ -106,6 +108,10 @@ func _on_LoadAndPlay_World_HTTPRequest_request_completed(result, response_code, 
 		vdb.startup_settings.save_file_infix = "last_visited_world";
 		
 		vdb.startup_settings.world_dict.desc.world_name = "Last Visited World: " + vdb.startup_settings.world_dict.desc.world_name;
+		
+		vdb.startup_settings.host = _visit_world_host_checkbox.pressed;
+		vdb.startup_settings.save_enabled = false;
+		
 
 		vr.switch_scene("res://levels/MainWorld.tscn", 0.5);
 
@@ -123,8 +129,9 @@ func _on_JoinServer_Join_Button_pressed():
 	
 	# save the last entered ip for next start
 	vdb.gameplay_settings.last_remote_host = _join_server_ip_address_textedit.text;
-	vdb.startup_settings.remote_host = _join_server_ip_address_textedit.text;
-
 	vdb.save_gameplay_settings();
+	
+	vdb.startup_settings.remote_host = _join_server_ip_address_textedit.text;
+	vdb.startup_settings.save_enabled = false;
 	
 	vr.switch_scene("res://levels/MainWorld.tscn", 0.5);

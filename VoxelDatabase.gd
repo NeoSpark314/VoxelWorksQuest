@@ -60,6 +60,7 @@ func reset_startup_settings():
 		host = false, # whether or not to start a server
 		remote_host = null, # ip string
 		load_game = true,
+		save_enabled = true,
 		save_file_infix = "noname",
 		world_dict = null, # if this is != null the world will be loaded from this dicitonary
 		generator_seed = 0,

@@ -225,7 +225,6 @@ __meta__ = {
 }
 
 [node name="Online" type="Panel" parent="TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 8.0
@@ -271,7 +270,6 @@ __meta__ = {
 }
 
 [node name="Visit World" type="Panel" parent="TabContainer/Online/TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -302,7 +300,7 @@ __meta__ = {
 margin_left = 380.0
 margin_top = 13.0
 margin_right = 716.0
-margin_bottom = 253.0
+margin_bottom = 189.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -328,6 +326,16 @@ margin_right = 716.0
 margin_bottom = 381.0
 custom_styles/normal = ExtResource( 5 )
 valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VisitWorld_Host_Checkbox" type="CheckBox" parent="TabContainer/Online/TabContainer/Visit World"]
+margin_left = 380.0
+margin_top = 205.0
+margin_right = 700.0
+margin_bottom = 253.0
+text = "Multiplayer Game"
 __meta__ = {
 "_edit_use_anchors_": false
 }

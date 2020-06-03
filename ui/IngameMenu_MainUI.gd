@@ -23,9 +23,6 @@ func _update_from_settings():
 	if core.server:
 		var addresses = IP.get_local_addresses();
 		_game_info_label.text += "Local IP Address: " + addresses[0];
-		
-
-	
 
 
 func _on_Game_Save_Button_pressed():

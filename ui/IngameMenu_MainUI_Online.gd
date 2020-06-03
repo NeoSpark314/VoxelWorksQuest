@@ -76,14 +76,6 @@ func _on_Register_Button_pressed():
 	pass # Replace with function body.
 
 
-func _on_Register_HTTPRequest_request_completed(result, response_code, headers, body):
-	var response_body := JSON.parse(body.get_string_from_ascii())
-	if response_code != 200:
-		_status_label.text = "Error: " + response_body.result.error.message
-	else:
-		_status_label.text = "Registration sucessful!"
-
-
 #var _share_world_online_http_request = null;
 onready var _share_http_request = $TabContainer/Share/Share_HTTPRequest;
 onready var _share_status_label = $TabContainer/Share/Share_Status_Label;

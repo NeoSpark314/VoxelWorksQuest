@@ -14,16 +14,15 @@ func _ready():
 	terrain.voxel_library = vdb.voxel_library;
 
 	vdb.voxel_world_player.set_player_parent_world(self);
+
+	save_enabled = vdb.startup_settings.save_enabled;
 	
 	if vdb.startup_settings.remote_host:
-		save_enabled = false;
 		# detach terrain as it has no generator and will crash
 		terrain.get_parent().remove_child(terrain);
 
 		vdb.voxel_world_player.connect_to_server(vdb.startup_settings.remote_host);
 	else:
-		save_enabled = true;
-		
 		add_child(vdb.voxel_world_player);
 		
 		# the main world is where we start and everything gets initialized
