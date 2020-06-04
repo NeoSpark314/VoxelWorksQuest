@@ -1,14 +1,16 @@
 extends Panel
 
 onready var _login_status_label = $TabContainer/Login/LoginStatusMessage_Label;
-
 onready var _login_email_line_edit = $TabContainer/Login/LoginEMail_LineEdit;
 onready var _login_password_line_edit = $TabContainer/Login/Login_Password_LineEdit;
 onready var _login_name_line_edit = $TabContainer/Login/LoginName_LineEdit;
 onready var _login_http = $TabContainer/Login/Login_HTTPRequest;
 
-onready var _register_http = $TabContainer/Login/Register_HTTPRequest;
 onready var _register_status_label = $TabContainer/Register/Register_StatusMessage_Label;
+onready var _register_email_line_edit = $TabContainer/Register/Register_EMail_LineEdit;
+onready var _register_password_line_edit = $TabContainer/Register/Register_Password_LineEdit;
+onready var _register_name_line_edit = $TabContainer/Register/Register_Name_LineEdit;
+onready var _register_http = $TabContainer/Login/Register_HTTPRequest;
 
 func _ready():
 	_update_from_settings();
@@ -36,6 +38,7 @@ func _is_valid_username(name):
 	if (name.length() <= 3): return false;
 	if (name.length() >= 20): return false;
 	return true;
+	
 
 func _on_Login_Button_pressed():
 	_login_status_label.text = "Trying to log in...";
@@ -66,7 +69,6 @@ func _on_Login_Button_pressed():
 		Firebase.patch_json(user_name_path, user_info, _login_http);
 		result = yield(_login_http, "request_completed") as Array
 		response_body = JSON.parse(result[3].get_string_from_ascii());
-		print(response_body.result);
 		if (result[1] != 200):
 			_login_status_label.text = "Error patching username: " + response_body.result.error.message;
 		else:
@@ -74,9 +76,47 @@ func _on_Login_Button_pressed():
 
 
 func _on_Register_Button_pressed():
-	_register_status_label.text = "Register not yet activated."
-	# not yet implemented
-	pass # Replace with function body.
+	_register_status_label.text = "Trying to register new account...";
+	
+	if _register_email_line_edit.text.empty() or _register_password_line_edit.text.empty():
+		_register_status_label.text = "Please, enter your login e-mail and password"
+		return;
+		
+	_register_name_line_edit.text = _register_name_line_edit.text.trim_prefix(" ").trim_suffix(" ");
+		
+	if (!_is_valid_username(_register_name_line_edit.text)):
+		_register_status_label.text = "Invalid user name. Should be > 3 and < 20 chars."
+		return;
+
+	Firebase.register(_register_email_line_edit.text, _register_password_line_edit.text, _register_http)
+	var result := yield(_register_http, "request_completed") as Array
+	# patch the user name; !!TODO: this should happen only on register once implemented
+	var response_body := JSON.parse(result[3].get_string_from_ascii());
+	if (result[1] != 200):
+		_register_status_label.text = "Error: " + response_body.result.error.message;
+	else:
+		
+		_login_email_line_edit.text = _register_email_line_edit.text;
+		_login_name_line_edit.text = _register_name_line_edit.text;
+		_login_password_line_edit.text = _register_password_line_edit.text;
+		_update_gameplay_settings_from_ui();
+		
+		# NOTE: this is very similar code as in the login; it updates the user name description
+		var d = OS.get_datetime();
+		var user_name_path = "shared-worlds-v1/world-description/"+response_body.result.localId+"/user-info.json";
+		var user_info = {
+			"name" : vdb.gameplay_settings.online_username,
+			"register_date" : "%d.%02d.%02d_%02d.%02d.%02d"  % [d.year, d.month, d.day, d.hour, d.minute, d.second],
+		}
+		Firebase.patch_json(user_name_path, user_info, _register_http);
+		result = yield(_register_http, "request_completed") as Array
+		response_body = JSON.parse(result[3].get_string_from_ascii());
+		if (result[1] != 200):
+			_register_status_label.text = "Error patching username: " + response_body.result.error.message;
+		else:
+			_register_status_label.text = "Registeration and Login Successfull!"
+			_login_status_label.text = "Login sucessful!"
+
 
 
 #var _share_world_online_http_request = null;

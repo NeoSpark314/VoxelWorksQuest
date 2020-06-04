@@ -4,8 +4,8 @@ var API_KEY : String = "";
 const PROJECT_ID := "voxel-works-quest";
 
 
-var REGISTER_URL := "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=%s" % API_KEY
-var LOGIN_URL := "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=%s" % API_KEY
+var REGISTER_URL := ""
+var LOGIN_URL := ""
 #const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents/" % PROJECT_ID
 
 const FIREBASE_URL := "https://voxel-works-quest.firebaseio.com/"
@@ -18,12 +18,16 @@ var user_info := {
 }
 
 func _ready():
-	var app = load("app_id.gd");
+	var app = load("res://networking/app_id.gd");
 	if (app):
 		API_KEY = app.new().id;
 		vr.log_info("Successfully loaded Firebase API_KEY");
 	else:
 		vr.log_warning("Firebase API_KEY is not available; login will not be possible.");
+
+	REGISTER_URL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=%s" % API_KEY
+	LOGIN_URL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=%s" % API_KEY
+
 
 func is_user_logged_in():
 	return user_info.token != null;
@@ -47,6 +51,7 @@ func register(email: String, password: String, http: HTTPRequest) -> void:
 	var body := {
 		"email": email,
 		"password": password,
+		"returnSecureToken": true
 	}
 	http.request(REGISTER_URL, [], false, HTTPClient.METHOD_POST, to_json(body))
 	var result := yield(http, "request_completed") as Array
