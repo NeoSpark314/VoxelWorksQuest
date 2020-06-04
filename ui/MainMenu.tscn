@@ -254,22 +254,24 @@ margin_bottom = -4.0
 margin_left = 12.0
 margin_top = 13.0
 margin_right = 748.0
-margin_bottom = 157.0
-text = "IMPORTANT: this is a very early test feature
+margin_bottom = 370.0
+text = "IMPORTANT: this is still a very early prototype
 
-YOU CAN'T PLAY ONLINE, you can only download a
-world created by others. You don't need an account for
-this.
+Visit World: here you can visit a world created by others.
+The world can currently not be saved locally.
 
-The upload functionality is in a VERY experimental
-state. If you would like to get an account please join the
-VoxelWorks discord and ask in the #ShareTest channel.
-I will create a test account for you."
+Join Server: !EARLY PROTOTYPE!
+this allows you to join a game hosted by someone else.
+This works only if you are on the same network or 
+if the host has port forwarding (port 1234) activated!
+
+Join the VoxelWorks Discord if you have questions!"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Visit World" type="Panel" parent="TabContainer/Online/TabContainer"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0

@@ -445,17 +445,16 @@ margin_left = 12.0
 margin_top = 13.0
 margin_right = 972.0
 margin_bottom = 370.0
-text = "IMPORTANT: Online Functionality is still in the early test phase.
+text = "IMPORTANT: Online Functionality is in early test phase.
 
-The upload functionality is still in an experimental state. If you use it and
-encounter issues please join the VoxelWorks Discord channel and report
-the bug/problem."
+The upload functionality is alsol in an experimental state. If you use it and
+encounter issues please join the VoxelWorks Discord channel to ask
+questions or report the problem."
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Login" type="Panel" parent="TabContainer/Online/TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -596,7 +595,6 @@ __meta__ = {
 [node name="Share_HTTPRequest" type="HTTPRequest" parent="TabContainer/Online/TabContainer/Share"]
 
 [node name="Register" type="Panel" parent="TabContainer/Online/TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -623,7 +621,7 @@ margin_left = 12.0
 margin_top = 77.0
 margin_right = -828.0
 margin_bottom = -252.0
-text = "Login EMail:"
+text = "Login e-mail:"
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
@@ -634,7 +632,6 @@ margin_left = 188.0
 margin_top = 77.0
 margin_right = 476.0
 margin_bottom = 125.0
-editable = false
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -643,10 +640,10 @@ __meta__ = {
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 12.0
-margin_top = 141.0
+margin_top = 205.0
 margin_right = -796.0
-margin_bottom = -188.0
-text = "Username:"
+margin_bottom = -124.0
+text = "User Name:"
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
@@ -654,19 +651,18 @@ __meta__ = {
 
 [node name="Register_Username_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Register"]
 margin_left = 188.0
-margin_top = 141.0
+margin_top = 205.0
 margin_right = 476.0
-margin_bottom = 189.0
-editable = false
+margin_bottom = 253.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Register_Password_Label" type="Label" parent="TabContainer/Online/TabContainer/Register"]
 margin_left = 12.0
-margin_top = 205.0
+margin_top = 141.0
 margin_right = 188.0
-margin_bottom = 253.0
+margin_bottom = 189.0
 text = "Password:"
 valign = 1
 __meta__ = {
@@ -675,10 +671,9 @@ __meta__ = {
 
 [node name="Register_Password_LineEdit" type="LineEdit" parent="TabContainer/Online/TabContainer/Register"]
 margin_left = 188.0
-margin_top = 205.0
+margin_top = 141.0
 margin_right = 476.0
-margin_bottom = 253.0
-editable = false
+margin_bottom = 189.0
 __meta__ = {
 "_edit_use_anchors_": false
 }

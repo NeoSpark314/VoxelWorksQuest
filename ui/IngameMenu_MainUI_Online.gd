@@ -1,20 +1,22 @@
 extends Panel
 
-onready var _status_label = $TabContainer/Login/LoginStatusMessage_Label;
+onready var _login_status_label = $TabContainer/Login/LoginStatusMessage_Label;
 
 onready var _login_email_line_edit = $TabContainer/Login/LoginEMail_LineEdit;
 onready var _login_password_line_edit = $TabContainer/Login/Login_Password_LineEdit;
 onready var _login_name_line_edit = $TabContainer/Login/LoginName_LineEdit;
 onready var _login_http = $TabContainer/Login/Login_HTTPRequest;
+
 onready var _register_http = $TabContainer/Login/Register_HTTPRequest;
+onready var _register_status_label = $TabContainer/Register/Register_StatusMessage_Label;
 
 func _ready():
 	_update_from_settings();
 	
 	if (Firebase.is_user_logged_in()):
-		_status_label.text = "Logged in";
+		_login_status_label.text = "Logged in";
 	else:
-		_status_label.text = "Not logged in";
+		_login_status_label.text = "Not logged in";
 	
 
 func _update_from_settings():
@@ -36,16 +38,16 @@ func _is_valid_username(name):
 	return true;
 
 func _on_Login_Button_pressed():
-	_status_label.text = "Trying to log in...";
+	_login_status_label.text = "Trying to log in...";
 	
 	if _login_email_line_edit.text.empty() or _login_password_line_edit.text.empty():
-		_status_label.text = "Please, enter your login email and password"
+		_login_status_label.text = "Please, enter your login email and password"
 		return;
 		
 	_login_name_line_edit.text = _login_name_line_edit.text.trim_prefix(" ").trim_suffix(" ");
 		
 	if (!_is_valid_username(_login_name_line_edit.text)):
-		_status_label.text = "Invalid user name. Should be > 3 and < 20 chars."
+		_login_status_label.text = "Invalid user name. Should be > 3 and < 20 chars."
 		return;
 		
 	_update_gameplay_settings_from_ui();
@@ -55,7 +57,7 @@ func _on_Login_Button_pressed():
 	# patch the user name; !!TODO: this should happen only on register once implemented
 	var response_body := JSON.parse(result[3].get_string_from_ascii());
 	if (result[1] != 200):
-		_status_label.text = "Error: " + response_body.result.error.message;
+		_login_status_label.text = "Error: " + response_body.result.error.message;
 	else:
 		var user_name_path = "shared-worlds-v1/world-description/"+response_body.result.localId+"/user-info.json";
 		var user_info = {
@@ -66,12 +68,13 @@ func _on_Login_Button_pressed():
 		response_body = JSON.parse(result[3].get_string_from_ascii());
 		print(response_body.result);
 		if (result[1] != 200):
-			_status_label.text = "Error patching username: " + response_body.result.error.message;
+			_login_status_label.text = "Error patching username: " + response_body.result.error.message;
 		else:
-			_status_label.text = "Login sucessful!"
+			_login_status_label.text = "Login sucessful!"
 
 
 func _on_Register_Button_pressed():
+	_register_status_label.text = "Register not yet activated."
 	# not yet implemented
 	pass # Replace with function body.
 
