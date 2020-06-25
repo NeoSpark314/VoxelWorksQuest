@@ -571,8 +571,10 @@ func _check_and_start_crafting(held_object):
 		#print(vdb.voxel_block_names2id.tree);
 		# We can craft on top of tree trunks for now
 		if (_is_a_crafting_voxel(vid_below)):
+			var rotation = floor((held_object.rotation_degrees.y + 45) / 90) * 90;
+
 			var cg : Spatial = load("res://dynamic_objects/CraftingGrid.tscn").instance();
-			cg.initialize_crafting_grid(vid_below);
+			cg.initialize_crafting_grid(vid_below, rotation);
 			parent_container_crafting_grids.add_child(cg);
 			cg.global_transform.origin = pos.floor();
 			cg.check_craft_place(held_object);

@@ -12,6 +12,8 @@ var _reset_counter = 0.0;
 var _num_build_steps = 4.0;
 var _build_step = 0.0;
 
+var block_rotation;
+
 var crafting_grid_voxel_def = null; # this is the voxel def that spawned this table
 
 # a furnace with fuel would be auto-craft
@@ -27,8 +29,9 @@ onready var indicator_invalid = $CraftIndicator/CraftIndicatorInvalid;
 const COLOR_valid_recipe = Color(0,0.521569,0,0.392157);
 const COLOR_invalid_recipe = Color(0.521569,0,1,0.392157);
 
-func initialize_crafting_grid(vid):
+func initialize_crafting_grid(vid, rotation_deg):
 	crafting_grid_voxel_def = vdb.voxel_block_defs[vid];
+	block_rotation = rotation_deg;
 	
 	if (vid == vdb.voxel_block_names2id.furnace):
 		is_furnace = true;
@@ -199,14 +202,16 @@ func _check_and_update_valid():
 func _ready():
 	$GridPoint.visible = false;
 	$Animated_Fire.visible = false;
+
+	grid_node_container.rotation_degrees.y = block_rotation;
 	
 	for y in range(0, grid_size):
 		for x in range(0, grid_size):
 			var g = Spatial.new();
 			grid_node_container.add_child(g);
-			var px = (x+0.5) / float(grid_size);
+			var px = (x-1) / float(grid_size);
 			var py = (y+0.5) / float(grid_size);
-			var pz = 0.5;
+			var pz = 0;
 			g.transform.origin = Vector3(px, py, pz);
 			
 			var marker = $GridPoint.duplicate();

@@ -36,6 +36,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.5, 0.5 )
 shape = SubResource( 1 )
 
 [node name="GridNodes" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0.5 )
 
 [node name="GridPoint" type="MeshInstance" parent="."]
 visible = false
