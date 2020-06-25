@@ -81,7 +81,7 @@ func can_attempt_craft(global_pos):
 		return false;
 	return true;
 
-func attempt_craft(held_object, is_physical):
+func attempt_craft():
 	#print("PLING");
 	_reset_counter = 0.0;
 	_build_step = _build_step + 1;

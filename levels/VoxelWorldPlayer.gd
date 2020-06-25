@@ -636,7 +636,7 @@ func check_attack_voxel(pos: Vector3, _speed, hand_name, is_physical):
 	# check if we are hitting a crafting area
 	for cg in parent_container_crafting_grids.get_children():
 		if (cg.can_attempt_craft(pos)):
-			if cg.attempt_craft(hand_name, is_physical):
+			if cg.attempt_craft():
 				_attempt_craft(voxel_pos, hand_name, is_physical);
 			return true;
 	
