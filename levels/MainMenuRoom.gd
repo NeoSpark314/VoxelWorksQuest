@@ -22,16 +22,13 @@ If you have questions or feedback join the Voxel Works Discord
 const changelog_text = [
 """Changelog for %s
 
- - Share Worlds Feature: You can now visit worlds uploaded by other 
-		players (and upload your own worlds)
- - Integrated Mixed Reality Capture Support
- - You can now rename your worlds
- - Settings/Textures Menu is now inside the game
- - Option to switch handedness
- - Option to Offset Player Height
- - selected custom texture is now saved
- - No fade to black in creative mode when head is inside voxels
+ - early experimental local multiplayer option 
+   (with port forwarding (1234) enabled you can 
+   also host a game over the internet)
 
+ - Disable Saving for visited worlds
+ - Crafting grid rotates now to hand position
+ 
 <-- Start Game (look left)""" % [vdb.GAME_VERSION_STRING]
 ]
 
