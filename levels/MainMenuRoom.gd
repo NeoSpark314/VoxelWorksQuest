@@ -21,7 +21,9 @@ If you have questions or feedback join the Voxel Works Discord
 # current changelog is always the first
 const changelog_text = [
 """Changelog for %s
+ - fixed custom textures
 
+Changelog for 0.3.11
  - early experimental local multiplayer option 
    (with port forwarding (1234) enabled you can 
    also host a game over the internet)
