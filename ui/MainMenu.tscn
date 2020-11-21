@@ -225,6 +225,7 @@ __meta__ = {
 }
 
 [node name="Online" type="Panel" parent="TabContainer"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 8.0
@@ -391,6 +392,70 @@ valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="OWO" type="Panel" parent="TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 57.0
+margin_right = -8.0
+margin_bottom = -8.0
+theme = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OWO_TitleLabel" type="Label" parent="TabContainer/OWO"]
+margin_left = 24.0
+margin_top = 23.0
+margin_right = 232.0
+margin_bottom = 71.0
+text = "OWO Server IP:"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OWO_ConnectButton" type="Button" parent="TabContainer/OWO"]
+margin_left = 24.0
+margin_top = 327.0
+margin_right = 728.0
+margin_bottom = 375.0
+text = "Connect To OWO Server"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OWO_TestSensation" type="Button" parent="TabContainer/OWO"]
+margin_left = 24.0
+margin_top = 135.0
+margin_right = 728.0
+margin_bottom = 183.0
+text = "Send Test Sensation"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OWO_IPAddress_TextEdit" type="TextEdit" parent="TabContainer/OWO"]
+margin_left = 24.0
+margin_top = 71.0
+margin_right = 728.0
+margin_bottom = 119.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OWO_StatusLabel" type="Label" parent="TabContainer/OWO"]
+margin_left = 24.0
+margin_top = 391.0
+margin_right = 728.0
+margin_bottom = 439.0
+custom_styles/normal = ExtResource( 5 )
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [connection signal="pressed" from="TabContainer/Load Game/Button_LoadGame" to="." method="_on_Button_LoadGame_pressed"]
 [connection signal="pressed" from="TabContainer/New Game/Button_StartNewGame" to="." method="_on_Button_StartNewGame_pressed"]
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Visit World/VisitWorld_RefreshList_Button" to="TabContainer/Online" method="_on_VisitWorld_RefreshList_Button_pressed"]
@@ -399,3 +464,5 @@ __meta__ = {
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/Refresh_User_HTTPRequest" to="TabContainer/Online" method="_on_Refresh_User_HTTPRequest_request_completed"]
 [connection signal="request_completed" from="TabContainer/Online/TabContainer/Visit World/LoadAndPlay_World_HTTPRequest" to="TabContainer/Online" method="_on_LoadAndPlay_World_HTTPRequest_request_completed"]
 [connection signal="pressed" from="TabContainer/Online/TabContainer/Join Server/JoinServer_Join_Button" to="TabContainer/Online" method="_on_JoinServer_Join_Button_pressed"]
+[connection signal="pressed" from="TabContainer/OWO/OWO_ConnectButton" to="." method="_on_OWO_ConnectButton_pressed"]
+[connection signal="pressed" from="TabContainer/OWO/OWO_TestSensation" to="." method="_on_OWO_TestSensation_pressed"]

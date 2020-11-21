@@ -13,7 +13,6 @@ onready var featur_climbing = $OQ_ARVROrigin/Feature_Climbing;
 onready var _left_ui_raycast = $OQ_ARVROrigin/OQ_LeftController/Feature_UIRayCast;
 onready var _right_ui_raycast = $OQ_ARVROrigin/OQ_RightController/Feature_UIRayCast;
 
-
 var preferences = {
 	auto_put_in_inventory = true
 }
@@ -1354,6 +1353,8 @@ func show_startup_tutorial():
 		text = _tutorial_creative;
 
 	vr.show_notification(title, text)
+	
+	
 
 
 func move_player_into_terrain_after_load(_terrain):

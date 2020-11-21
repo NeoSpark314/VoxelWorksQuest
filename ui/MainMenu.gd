@@ -27,6 +27,8 @@ func _ready():
 	_create_new_game_menu();
 	
 	_setup_main_menu();
+	
+	_setup_owo_menu();
 
 var savegame_list = null;
 
@@ -132,4 +134,32 @@ func _on_Button_StartNewGame_pressed():
 	_start_game();
 
 
+onready var owo_status = $TabContainer/OWO/OWO_StatusLabel;
+onready var owo_ip_edit = $TabContainer/OWO/OWO_IPAddress_TextEdit;
+
+func _setup_owo_menu():
+	owo_ip_edit.text = vdb.gameplay_settings.last_owo_server_ip;
+	$TabContainer/OWO/OWO_TestSensation.disabled = true;
+	if (vdb.OWO): owo_status.text = "Press connect to try to reach the OWO server"
+	else: owo_status.text = "Error: could not initialize OWO node"
+
+func _on_OWO_ConnectButton_pressed():
+	if (vdb.OWO):
+		vdb.gameplay_settings.last_owo_server_ip = owo_ip_edit.text;
+		vdb.OWO.connect_to_owo_server(vdb.gameplay_settings.last_owo_server_ip);
+		owo_status.text = "Trying to connect to " + vdb.gameplay_settings.last_owo_server_ip + " ..."
+	else: 
+		owo_status.text = "Error: no OWO node"
+
+func _process(_dt):
+	if (vdb.OWO):
+		if (vdb.OWO.is_connected_to_owo_server()):
+			$TabContainer/OWO/OWO_TestSensation.disabled = false;
+			owo_status.text = "Success connecting to " + vdb.gameplay_settings.last_owo_server_ip + "!"
+
+
+func _on_OWO_TestSensation_pressed():
+	if (vdb.OWO):
+		vdb.OWO.send_sensation(vdb.OWO.Sensations.StrangePresence, vdb.OWO.Muscles.Dorsal_L);
+		vdb.OWO.send_sensation(vdb.OWO.Sensations.StrangePresence, vdb.OWO.Muscles.Dorsal_R);
 

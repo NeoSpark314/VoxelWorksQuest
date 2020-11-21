@@ -49,10 +49,14 @@ var gameplay_settings := {
 	online_password = "",
 	
 	last_remote_host = "192.168.100.58",
+	
+	last_owo_server_ip = "127.0.0.1", 
 }
 
 
 var startup_settings = {}
+
+var OWO = null;
 
 
 func reset_startup_settings():
@@ -2325,12 +2329,18 @@ func load_vox_onlyvoxels(file_path):
 	
 	return [sizex, sizey, sizez, voxels_byte_array];
 
+func _setup_owo_integration():
+	OWO = load("addons/OWO/Feature_OWO.tscn").instance();
+	vr.log_info("Created OWO integration node");
+	
 
 var voxel_world_player = null;
 
 func initialize():
 	
 	vr.log_info("VoxelDatabase.initialize()");
+	
+	_setup_owo_integration();
 	
 	reset_startup_settings();
 	

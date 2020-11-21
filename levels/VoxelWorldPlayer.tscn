@@ -138,6 +138,7 @@ transparent = false
 [node name="Timer" type="Timer" parent="."]
 wait_time = 0.05
 autostart = true
+
 [connection signal="grab_released_held_object" from="OQ_ARVROrigin/OQ_LeftController/ObjectGrabber" to="." method="_on_ObjectGrabber_grab_released_held_object"]
 [connection signal="grab_released_held_object" from="OQ_ARVROrigin/OQ_RightController/ObjectGrabber" to="." method="_on_ObjectGrabber_grab_released_held_object"]
 [connection signal="timeout" from="Timer" to="." method="_send_positions"]

@@ -266,12 +266,18 @@ func _give_item(uuid, item_name):
 
 func player_grab_item(uuid, hand_name, item_uuid):
 	vdb.voxel_world_player.player_grab_item(uuid, hand_name, item_uuid);
+	
+	if (vdb.voxel_world_player.uuid == uuid):
+		_owo_grab_item(hand_name == "left");
 
 	if server:
 		server.broadcast_reliable("player_grab_item", [ uuid, hand_name, item_uuid ]);
 
 func player_take_from_crate(uuid, hand_name, crate_position):
 	var item_uuid = vdb.gen_uuid();
+
+	if (vdb.voxel_world_player.uuid == uuid):
+		_owo_grab_item(hand_name == "left");
 
 	vdb.voxel_world_player.player_take_from_crate(uuid, hand_name, crate_position, item_uuid);
 
@@ -280,6 +286,9 @@ func player_take_from_crate(uuid, hand_name, crate_position):
 
 func player_grab_from_inventory(uuid, hand_name, slot):
 	var item_uuid = vdb.gen_uuid();
+	
+	if (vdb.voxel_world_player.uuid == uuid):
+		_owo_grab_item(hand_name == "left");
 
 	vdb.voxel_world_player.grab_from_inventory(uuid, hand_name, slot, item_uuid);
 
@@ -487,6 +496,9 @@ func craft_with(uuid, voxel_pos, held_object, is_physical):
 func attempt_break(uuid, preferences, voxel_position, hit_position, hand_name, is_physical):
 	var held_obj = _get_held_object(uuid, hand_name);
 	
+	if (vdb.voxel_world_player.uuid == uuid):
+		_owo_hit_voxel(hand_name == "left");
+	
 	# here we check if the voxel_block has a specific definition of what tools
 	# can break it; if it is not breakable by the currently held tool we just
 	# return
@@ -578,9 +590,38 @@ func attempt_build(uuid, voxel_position, hit_position, hand_name, is_physical):
 
 	var voxel_id = voxel_def.id;
 
+	if (vdb.voxel_world_player.uuid == uuid):
+		_owo_hit_voxel(hand_name == "left");
+
 	# increment until it returns true
 	if (_increment_build(voxel_position, hit_position, voxel_id)):
 		_delete_held_object(uuid, hand_name);
 		add_voxel(uuid, hit_position, voxel_id, is_physical);
 	
 	return true;
+
+
+# owo sensations
+func _owo_running():
+	if (!vdb.OWO): return;
+	vdb.OWO.send_sensation(vdb.OWO.Sensations.Freefall, vdb.OWO.Muscles.Dorsal_L);
+	vdb.OWO.send_sensation(vdb.OWO.Sensations.Freefall, vdb.OWO.Muscles.Dorsal_R);
+
+func _owo_falling():
+	if (!vdb.OWO): return;
+
+func _owo_hit_voxel(is_left):
+	if (!vdb.OWO): return;
+
+	var m = vdb.OWO.Muscles.Arm_R;
+	if (is_left): m = vdb.OWO.Muscles.Arm_L;
+	
+	vdb.OWO.send_sensation(vdb.OWO.Sensations.QuickShot, m);
+
+func _owo_grab_item(is_left):
+	if (!vdb.OWO): return;
+
+	var m = vdb.OWO.Muscles.Arm_R;
+	if (is_left): m = vdb.OWO.Muscles.Arm_L;
+	
+	vdb.OWO.send_sensation(vdb.OWO.Sensations.LoadHeavyObject, m);
