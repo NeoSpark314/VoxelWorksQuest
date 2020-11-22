@@ -1,7 +1,7 @@
 extends Node
 
 # Increment this immediately after release
-const GAME_VERSION_STRING = "0.3.12";
+const GAME_VERSION_STRING = "0.3.12_OWO";
 const GAME_NAME = "Voxel Works Quest";
 
 const VOXEL_TEXTURE_ATLAS_SIZE = 32;
