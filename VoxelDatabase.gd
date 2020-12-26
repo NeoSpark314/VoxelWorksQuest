@@ -59,6 +59,7 @@ func reset_startup_settings():
 	startup_settings = {
 		host = false, # whether or not to start a server
 		remote_host = null, # ip string
+		dedicated_server = false,
 		load_game = true,
 		save_enabled = true,
 		save_file_infix = "noname",

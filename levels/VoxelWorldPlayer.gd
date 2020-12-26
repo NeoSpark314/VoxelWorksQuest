@@ -988,6 +988,9 @@ func _back_to_main_menu():
 onready var _ingame_menu = $HUD/IngameMenu_3DScene;
 
 func _physics_process(dt):
+	# don't do anythin at the moment when launched as dedicated server
+	if (vdb.startup_settings.dedicated_server): return;
+	
 	_global_dt = dt;
 	if (vr.switch_scene_in_progress || terrain == null): 
 		return;
