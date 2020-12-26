@@ -987,9 +987,18 @@ func _back_to_main_menu():
 	
 onready var _ingame_menu = $HUD/IngameMenu_3DScene;
 
+var _server_save_timer := 0.0;
+
 func _physics_process(dt):
-	# don't do anythin at the moment when launched as dedicated server
-	if (vdb.startup_settings.dedicated_server): return;
+	# don't do anythinG at the moment when launched as dedicated server
+	# (there is some out of memory bug when the belo code is executed as server)
+	if (vdb.startup_settings.dedicated_server): 
+		# a very hacky way to save every minute:
+		_server_save_timer += dt;
+		if (_server_save_timer >= 60.0):
+			_save_all();
+			_server_save_timer = 0.0;
+		return;
 	
 	_global_dt = dt;
 	if (vr.switch_scene_in_progress || terrain == null): 
@@ -1074,6 +1083,8 @@ func _physics_process(dt):
 func _save_all():
 	if (!parent_world.save_enabled):
 		return false;
+		
+	vr.log_info("Saving game");
 	
 	vdb.persistence_save_game(persisted_nodes_array);
 	vdb.save_global_statistics();
