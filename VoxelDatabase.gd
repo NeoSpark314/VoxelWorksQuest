@@ -1192,25 +1192,25 @@ var _crafting_recipies = [
 	{
 		input = ["tree"],
 		output = ["wood", "wood", "wood", "wood"],
-		crafttable_requirements = ["tree", "wood_workbench"],
+		crafttable_requirements = ["tree", "aspen_tree", "pine_tree", "jungle_tree", "wood_workbench"],
 		tool_requirements = null,
 	},
 	{
 		input = ["aspen_tree"],
 		output = ["aspen_wood", "aspen_wood", "aspen_wood", "aspen_wood"],
-		crafttable_requirements = ["tree", "wood_workbench"],
+		crafttable_requirements = ["tree", "aspen_tree", "pine_tree", "jungle_tree", "wood_workbench"],
 		tool_requirements = null,
 	},
 	{
 		input = ["pine_tree"],
 		output = ["pine_wood", "pine_wood", "pine_wood", "pine_wood"],
-		crafttable_requirements = ["tree", "wood_workbench"],
+		crafttable_requirements = ["tree", "aspen_tree", "pine_tree", "jungle_tree", "wood_workbench"],
 		tool_requirements = null,
 	},
 	{
 		input = ["jungle_tree"],
 		output = ["jungle_wood", "jungle_wood", "jungle_wood", "jungle_wood"],
-		crafttable_requirements = ["tree", "wood_workbench"],
+		crafttable_requirements = ["tree", "aspen_tree", "pine_tree", "jungle_tree", "wood_workbench"],
 		tool_requirements = null,
 	},
 
